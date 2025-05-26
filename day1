@@ -1,0 +1,69 @@
+Day 1
+Jenkins-->Ci
+
+Prerequities: JDK
+
+
+
+Arch-->
+
+Master--->JDK,jenkins
+
+Agents-->Job trigger(VM,Container,dockerfile)
+
+Free style job
+
+Pipeline job
+
+DSL-->Domain specific  language: Groovy (syntax it similar to java)
+
+scripted--> legacy
+
+declarative pipeline-->
+
+-------------------
+Rockylinux-->Redhat family (Centos)-->dnf/yum
+
+1) Jenkins ci
+
+--Deployment
+-- 1700 + plugin
+-- Groovy
+-- gitlabci, azure devops, GitHub action, gcp cloud build, aws codebuild
+-- Opensource
+
+Groovy
+
+Lab1
+
+--Setup jenkins-->
+
+  JDK
+  Jenkins package
+
+  8080
+  default user admin/initial password
+
+----
+scripted vs declarative pipeline
+
+Both supports groovy
+
+scripted				decleartive
+1) syntax			pipeline {
+	
+node {					}
+
+}
+
+2)node and stage		pipeline,agent,stages,stage and step (manadatory blocks)
+
+3)Legacy(old pipeline)			Declrative
+
+4) job is completed-->build-->test-->deploy
+
+5) If you want to rerun, replay (rerun it completely) option in scripted pipeline
+
+6) Rerun the job in declarative pipeline--> replay and restart from stage option are available
+	
+https://www.youtube.com/watch?v=-vKhB3mVrU
