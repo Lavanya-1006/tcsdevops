@@ -1,0 +1,291 @@
+Day2: git activites (using ssh) and maven
+----------
+
+What is version control?
+
+maintaining the revision? Why we are maintaining the revision?
+
+developer changes has to tracked? why?
+
+Revert back
+
+----------
+
+version control tool: git (application)
+
+what is GitHub? How will one developer will share the code change with other developer?
+
+Hosting website to host git projects.  (GitHub,gitlab,bitbucket)
+
+------------------------------------------
+
+
+1) you created a project on GitHub and clone it
+
+2) I will create a project in Linux/windowsbox and convert to git project
+
+3) enable the tracking , i will add and commit
+
+4) git commit  command , will generate a commit id , that commit id is tracking the changes.
+
+
+--------------------------------------
+
+
+Clone-->Full download 
+
+Pull-->First time it will download full, after that pull will only download the difference
+
+
+git repo (a,b,c) suppose u created a new file d
+
+clone-->a,b,c
+
+pull--> firstime ->a,b,c
+
+if you do pull again, it will only download the difference
+
+d
+------------------------------
+ssh authentication
+
+which works using private and public key pair
+
+private key will be in your Linux box.
+
+public key you will upload to GitHub
+
+whenever you run "git push " command--> it will use private key to encrypt the data, if GitHub has right public key
+it will decrypt successfully, u will be authenticated.
+
+-------------------------
+
+ssh-keygen -t rsa
+
+using above command you will create key pair for a specific user in your Linux box.
+
+-------------------------------------------------------------------
+
+Build tools:
+
+maven: Maven is build tool to create package from the java source code.
+
+
+Playstore: package
+
+Build tools create package.
+
+java source code-->Compile (javac)-->interpretor-->ML-->package
+
+
+Maven-->POM.xml (project object model)
+
+-->carries environment details for code
+
+--> Dependency for packaging.
+
+--> Plugin requirement that pom.xml
+-----------------------
+
+What is artifact?
+
+collection of package..
+
+-->output (package) 
+
+-->ansible,terraform (reports)
+
+When you want to store your output, to reuse somewhere else, then it is called artifact.
+
+pacakge-->
+report
+log
+
+JFrog is one of the artifcatory.
+
+source code-->building package-->Releasing it
+
+java-->maven to build-->Release jfrog
+
+--------------------------------
+
+
+Jenkins-->Master
+
+single node(build tool is installed)
+
+--------------------
+
+
+parameters: inputs
+
+string
+
+dev qa prod (3 env)
+
+according to env my pipline will run stage
+
+
+checkout dev/qa prod
+
+build dev/qa prod
+
+deploy prod
+
+Choice parameter
+
+dev
+qa
+prod
+
+build with paramters
+
+--------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

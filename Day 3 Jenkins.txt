@@ -1,0 +1,336 @@
+Day 3 Jenkins:
+
+java-->maven
+dockerfile-->docker build
+python-->pip
+
+terraform
+ansible-->no build tools
+
+------------------
+
+SonarQube:
+
+What is SonarQube?
+
+SAST tool: Static application security testing
+
+It will go and scan your application code.
+
+-- Try to find any vulernablities are there?
+-- If code has any logical issue
+-- if code has some password or token in plain-text they will find out
+-- If code duplication is there these tool can findout
+-- Code smell-->They procativaley find the issue.
+
+To work as code reviewer
+
+==>SonarQube
+
+--> Codeql
+
+--> aws code guru
+
+
+----------------------
+-->code-->build package-->scan code(Sec ops): Vulernability
+
+
+Stages:
+
+	stage: checkout-->Git repo
+	stage: package-->mvn clean package
+	stage: verify-->mvn verify
+	stage: test package-->mvn test
+	stage: sonar cli-->sonar cli on your system
+	stage: scaning and publishing the repor-->organization key ,project and token in ci pipeline
+
+
+Sonar plugin: The plugin they not maintaining 
+
+
+
+maven: package tool->maven
+
+sonar: scan/review application code
+
+----------------
+docker /containers
+dockerfile
+
+Jenkins
+------------------------------------------
+
+What is docker? what is containers?
+
+
+Docker is a opensource tool which provides containerization.
+
+Podman,cri-o
+
+-----------------
+
+What is containers?
+
+Application works?
+
+
+I need a db (mysql) on my laptop?
+
+-->you will go and install db
+
+-->MySQL 8
+
+Is it possible to run multiple version of MySQL simautaenously on same laptop??
+
+-->MySQL 5 without MySQL 8?
+
+JDK 17-->JDK21
+
+
+
+2) Suppose you are running jenkins--dependency 21
+
+another app which require jdk 17
+
+Dependency conflicts
+
+-------------------
+
+Multiple app version, installation challenges must be avoided
+
+Bundle the application in the container: application source code+ run time+Dependency +library +configuration
+
+------------------
+Application-->Design to run/install directly on os
+
+Application-->sourcecode+ compile+package+run ==>to put all these activity (assembling process ) to create container image we need
+
+docker/podman-->capability to create container image
+
+To run the containers on the os: you need one application which understand the containerization. That application is called container run time.
+
+
+Docker is one of the container run time provider.
+
+
+It is first company which provided a stable soulution for container image and container run time.
+
+
+Yes, podman,cri-o
+
+Linux foundation: cncf(cloud native computing foundation) -->Kubernetes
+
+OCI--> open container intitative:
+
+How to build the container iamge
+
+how to run  the container image
+
+----------------
+
+installation of docker
+
+Explain docker architecture
+
+-->docker can build container images: Build library (buildkt)
+--> docker can run container images: Container run time(Containerd)
+
+docker cli-->request will go to dockerd (Server)
+
+client -server arch
+
+docker cli-->Client
+
+dockerd-->Server
+
+
+Containerd is the container run time application of docker
+
+
+Docker engine: docker client+ dockerd + docker api +containerd
+
+
+------------------
+
+images: container images. Packages which i will use for distribution purpose
+
+os which is stored on dvd...iso image
+
+git project-->uploading to the GitHub
+
+container image-->upload the registry
+
+
+--Create the start container from the image-->containers
+
+
+--->search the image on registry
+
+-->download it
+
+-->create the container.
+
+----------------------------
+
+LAb
+
+How to search application image
+
+Download image
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
