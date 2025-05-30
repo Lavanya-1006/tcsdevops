@@ -1,0 +1,223 @@
+Day 4 
+Containerization:
+
+How application will be running or packaging in containers:
+
+appcode+ run time+dep +lib
+
+containers:
+
+Container images: read only templates for your application
+
+Registry: is a repos, where you keep container images for storing and distribution purpose
+
+docker hub
+quay
+mcr
+ghcr
+
+---
+
+Application:Container runtime: Containerd (docker container run time)
+
+docker cli-->client
+dockerd daemon-->server
+containerd-->container runtime
+
+
+docker search nginx--->containerd-->connect to registry (hub.docker)
+
+docker pull nginx
+
+docker images
+
+If i want to create container fom the image,and start the container
+ 
+
+docker run -d --name mycontainer nginx
+
+containers are not virutalmachine:
+
+vm-->will be having full os kernel
+
+containers are dependent on the host os for kernel calls.
+
+
+container-->ip address
+       ->pid
+
+----------------------------
+Image building process
+
+image buiding is not part of container runtime
+
+
+dockerfile(name of thefile can be anything)
+
+
+What is in the docker file??
+
+It will be having a set of instruction how to build a container image.
+
+--Using that set of instruction we will be building our container image.
+
+Activity which you want perform.
+
+FROM 
+LABEL
+ADD
+COPY
+EXPOSE
+RUN
+CMD 
+ENTRYPOINT
+WORKDIR
+
+Instuction are not case sensitive, it is  a practice to distguish between instruction and argument, instruction
+
+should be provided in caps.
+--------------
+FROM instruction
+
+IF I give you an applicaton code, and I ask you to go and copy it?
+
+abc application, which you need to container image for thJ
+
+Suppose this abc application is webserver code written in php, I need to isnt
+FROM : Mandatory instruction to provide the base image
+
+FROM ubuntu
+RUN apt-get install apache2 -y
+
+docker build -t webapplication  -f dockerfile .
+
+
+
+----------------
+
+application code-->Devolment box--
+
+
+
+Requirement-->Develop a contaimer image where webserver is permeanently installed
+
+FROM ubuntu
+RUN apt-get update && apt-get install apache2 -y
+
+docker build -t webapp -f dockerfile .
+
+-----------------
+
+base image==>
+
+from Debian:stable
+
+-->docker build on the docker file
+
+	==>docker pull debain:stable
+	==>it creates in temp container
+	==> apt-get udate && apt-get install apach2    
+       ==>commit create a new image
+
+base+webserver==>newimage
+
+
+-----------
+
+FROM
+CMD
+ADD
+---------
+
+Whenever my container runs the stuff execte.
+
+Image creation part that particular section should not exeucte
+
+docker build
+
+docker run
+
+
+date.sh
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
