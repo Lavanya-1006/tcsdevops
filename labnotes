@@ -5,7 +5,7 @@ Jenkins master setup: https://www.jenkins.io/doc/book/installing/linux/#red-hat-
 sudo wget -O /etc/yum.repos.d/jenkins.repo  https://pkg.jenkins.io/redhat-stable/jenkins.repo
 sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
 yum update
-sudo yum upgrade
+
 # Add required dependencies for the jenkins package
 sudo yum install fontconfig java-21-openjdk
 sudo yum install jenkins
@@ -16,8 +16,6 @@ systemctl start jenkins
 systemctl status jenkins
  
 
------------------------
- 
 ------------------------
 Lab2
 1) In the browser : localhost:8080
@@ -29,3 +27,410 @@ cat /var/lib/jenkins/secrets/initialAdminPassword
 3) get the password and login
 
 4) Install suggested plugin
+
+ 
+ Lab 3:
+Lab 2 https://www.openwriteup.com/?page_id=1115
+
+node {
+// Define the label of the agent where you want to run the pipeline
+//label 'mylabel'
+stage('Checkout') {
+// Checkout code from the Git repository
+sh 'echo checking out'
+}
+stage('Build') {
+// Build the Java application (replace with your build commands)
+sh 'java --version'
+}
+stage('Deploy') {
+// Deploy the application (replace with your deployment commands)
+sh 'echo "Deploying the application"'
+}
+}
+
+
+Plugin: pipeline stage view
+
+-----------------
+
+Lab 4 : Decalartive pipeline :https://www.openwriteup.com/?page_id=1115 (Lab 3)
+
+pipeline {
+agent any
+stages {
+  stage('Checkout') {
+    steps {
+// Checkout code from the Git repository
+     sh 'echo checking out'
+   }
+  }
+stage('Build') {
+  steps {
+// Build the Java application (replace with your build commands)
+  sh 'javac -version'
+ }
+}
+stage('Deploy') {
+  steps {
+  // Deploy the application (replace with your deployment commands)
+   sh 'echo "Deploying the application"'
+   }
+  }
+ } 
+} 
+
+Lab 5: Assignment
+    
+Go in your git repo “myrepo”
+Create a “Jenkinsfile”
+Copy the code from lab 3
+checkin the code to github (using git add,commit and push
+Create a new pipeline and scripting block dropdown, select “pipeline with SCM”
+Mention your git repo and save .
+Run the build
+
+
+--------------------------------------
+27/05
+
+git add,commit and push using  ssh
+
+https://www.openwriteup.com/?page_id=1075
+
+Do the git init, git add, git commit
+ 
+
+LAb2
+
+https://www.openwriteup.com/?page_id=1081
+
+Lab3:
+
+dnf install maven -y
+
+Lab 1: https://www.openwriteup.com/?page_id=1135
+
+Lab 2: https://www.openwriteup.com/?page_id=1135
+
+Lab 4: https://www.openwriteup.com/?page_id=1135
+
+Lab https://www.openwriteup.com/?page_id=1073 (lab 17)
+
+
+---------------------------
+28/05
+
+https://www.sonarsource.com/products/sonarcloud/
+
+Lab https://www.openwriteup.com/?page_id=1223
+ 
+ 
+vi /etc/sudoers
+
+jenkins ALL=(ALL) NOPASSWD: ALL
+ 
+ pipeline {
+agent any
+
+stages {
+stage('chckout scm') {
+steps {
+checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/hellokaton/java11-examples.git']])
+}
+}
+stage('Compiling and Running Test Cases') {
+steps {
+sh 'mvn clean'
+sh 'mvn compile'
+sh 'mvn test'
+}
+}
+stage('Generating a Cucumber Reports') {
+steps {
+script {
+// Run Cucumber tests and generate reports
+sh 'mvn verify'
+}
+}
+}
+stage('Creating Package') {
+steps {
+sh 'mvn package'
+}
+}
+stage('adding genrerate report'){
+steps {
+sh 'mvn verify'
+}
+}
+stage('Install sonarqube cli') {
+steps {
+// Step to install SonarQube CLI
+sh 'sudo wget -O sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip'
+sh 'sudo unzip -o -q sonar-scanner.zip'
+sh 'sudo rm -rf /opt/sonar-scanner'
+sh 'sudo mv --force sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner'
+sh 'sudo sh -c \'echo "#/bin/bash \nexport PATH=\\\"$PATH:/opt/sonar-scanner/bin\\\"" >/etc/profile.d/sonar-scanner.sh\''
+sh 'sudo chmod +x /opt/sonar-scanner/bin/sonar-scanner'
+sh '. /etc/profile.d/sonar-scanner.sh'
+}
+}
+
+stage('Analyzing Code Quality') {
+steps {
+// Step to analyze code quality with SonarQube
+sh '/opt/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=owtest23_myproj -Dsonar.organization=owtest23 -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.sources=src/main/java/ -Dsonar.java.binaries=target/classes -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=cd718b63ea3b0b88b10541ff23b08430789260e1'
+}
+}
+}
+}
+---------------------------
+install dcoekr 
+LAb 1 : https://www.openwriteup.com/?page_id=785
+
+Lab2:
+
+docker search nginx
+docker pull nginx
+docker images
+
+docker pull mysql:innovation
+docker images
+
+
+docker pull mysql:innovation
+docker images
+
+#To check the running container
+ 
+docker ps
+
+docker run -d --name mycontainer nginx
+
+docker ps
+
+docker stop mycontainer
+
+docker ps
+
+docker ps -a
+
+docker start mycontainer
+
+docker ps
+
+-------------------------------
+
+docker inspect mycontainer
+
+'---------------
+29/05
+
+Lab
+
+dokken/centos-8
+
+docker pull dokken/centos-8
+
+docker images
+docker run -dit --name centos dokken/centos-8 bash
+docker ps --nam
+docker exec -it centos ip addr
+docker exec -it centos ps
+
+windowsn containre
+docker pull mcr.microsoft.com/windows/nanoserver:ltsc2025
+
+
+--------------------------------------
+
+Lab 2
+
+1) docker pull debian:stable
+2) docker run -dit --name testdeb debian:stable
+3) docker exec -it testdeb ls /var/www/html
+
+#error file not found
+
+4) vi dockerfile and copy below content
+
+FROM debian:stable
+LABEL authors="amit"
+RUN apt-get update && apt-get install -y --force-yes apache2
+EXPOSE 80
+
+5) docker build -t mydeb .
+6) docker images
+7) docker run -dit --name testweb mydeb
+8) docker exec -it testweb ls /var/www/html
+
+Lab3:
+
+docker pull ubuntu:latest
+docker run -dit --name addcopy ubuntu:latest
+docker exec -it addcopy ls /app
+
+touch file.txt
+vi dockerfileadd and copy below code, save it
+
+FROM ubuntu:latest
+# Set a working director inside container
+WORKDIR /app
+#Copy file from current directory
+COPY file.txt /app/
+#ADD a directory from the host
+#ADD /home/lab-user/amit /app/
+ADD https://github.com/amitopenwriteup/my_proj/blob/master/k8s-setup.txt /app/
+#Till this point copy it in docker file
+
+docker build -t ubuntuimage -f dockerfileadd  .
+
+docker images
+
+docker run -dit --name addcopytest ubuntuimage
+docker exec -it addcopytest ls /app
+
+-----------------------
+
+CMD
+
+#Create date.sh file and copy below script
+
+#!/bin/sh
+echo `date` $@ >> log.txt;
+cat log.txt;
+#save date.sh script
+
+chmod 777 date.sh
+
+#Create a dockercmd file
+
+FROM alpine
+ADD date.sh /
+CMD ["/date.sh", "container started"]
+
+docker build -t cmdtest -f dockercmd .
+docker run cmdtest
+
+
+-------------------
+
+
+30/05
+
+https://www.openwriteup.com/?page_id=825 (LAb1 to Lab4 ) : RUN CMD and ENTRYPOINT
+
+LAb2:
+signup using github
+
+https://hub.docker.com/
+
+
+
+Lab3:
+https://www.openwriteup.com/?page_id=838
+
+Push the image
+
+Volume lab:
+
+docker stop registry
+docker rm registry
+
+# Refresh the broswer, it will give error page not found
+
+http://localhost:5000/v2/_catalog
+
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+
+AGain open the browser the below link and check
+http://localhost:5000/v2/_catalog
+
+docker stop registry
+docker rm registry
+
+----
+create a volume
+
+docker volume create datavol
+docker inspect datavol
+docker run -d -p 5000:5000 --restart=always -v datavol:/var/lib/registry  --name registry registry:2
+docker push localhost:5000/my-image
+docker stop registry
+docker rm registry
+
+   docker run -d -p 5000:5000 --restart=always -v datavol:/var/lib/registry  --name registry registry:2
+AGain open the browser the below link and check
+http://localhost:5000/v2/_catalog
+
+docker stop registry
+docker rm registry
+
+----------map your own volume
+
+mkdir /root/test
+
+docker run -d -p 5000:5000 --restart=always -v /root/test:/var/lib/registry  --name registry registry:2
+
+docker push localhost:5000/my-image
+docker stop registry
+docker rm registry
+
+docker run -d -p 5000:5000 --restart=always -v /root/test:/var/lib/registry  --name registry registry:2
+
+AGain open the browser the below link and check
+http://localhost:5000/v2/_catalog
+
+
+Lab 4:
+
+#Create the alpine-net network. You do not need the --driver bridge flag since it's the default, but this example shows how to specify it.
+
+docker network create --driver bridge alpine-net
+
+docker network ls
+
+#inspect
+
+docker network inspect alpine-net
+
+Create your four containers. Notice the --network flags. You can only connect to one network during the docker run command, so you need to use docker network connect afterward to connect alpine4 to the bridge network as well.
+
+docker run -dit --name alpine1 --network alpine-net alpine ash
+
+docker run -dit --name alpine2 --network alpine-net alpine ash
+
+docker run -dit --name alpine3 alpine ash
+
+docker run -dit --name alpine4 --network alpine-net alpine ash
+
+docker network connect bridge alpine4
+
+#check all container
+
+docker container ls
+
+docker network inspect bridge
+
+
+docker network inspect alpine-net
+
+
+#Ping test
+
+docker container attach alpine1
+ping -c 2 alpine2
+ping -c 2 alpine4
+
+#It should fail for alpine 3, why?
+ping -c 2 alpine3
+
+#Stop and delete
+
+docker container stop alpine1 alpine2 alpine3 alpine4
+
+docker container rm alpine1 alpine2 alpine3 alpine4
+
+docker network rm alpine-net
+
