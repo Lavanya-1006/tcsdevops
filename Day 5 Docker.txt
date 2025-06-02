@@ -1,0 +1,197 @@
+Day 5 Docker
+
+Docker build
+
+docker file
+
+FROM
+
+ADD
+
+COPY
+
+EXPOSE
+
+LABEL
+
+RUN
+
+----------
+
+CMD
+
+
+date.sh--> its prints the current system time
+
+
+FROM alpine
+ADD date.sh /
+RUN date.sh image created
+
+
+docker build-->alpine-->Start alpine container-->copy date.sh-->executes-->it creates new image
+
+
+
+--------------
+
+CMD instruction was not exucted during image building process
+entrypoint is also same like cmd, ep allow you to provide the input when you are creating container.
+
+either ep will excute or cmd. ep has higher priority compare to cmd
+--------------
+
+docker build -t myimage -f dockerfile .
+
+
+-t : tag your account name on dockerhub, followed by repository version
+
+
+
+
+Rockylinux vm-->registery container: 5000--->fwding-->rockylinxvm:5000
+
+-p 5000:5000
+
+172.17.0.3:5000--->localhost:5000
+
+
+laptop started software-->traffic to certain portnumber:5000===firwarell
+
+
+----------------------------
+
+data persistency
+
+image: registry
+
+container-->push the image to your private registry
+
+
+docker rm  registry
+
+docker run -d --name registry registry:
+----------------
+
+external volume to container
+
+
+docker volume create datavol
+
+docker run -d 
+
+
+
+c2 c1
+
+bridge   docker0 default bridge
+------
+single host
+
+bridge network allow container to communicate to each other, if they are part of same bridge
+
+docker run -dit
+
+alpine1  --alpine-net 
+alpine2  --alpine-net
+
+alpine3  --docker0
+
+
+
+
+----
+
+Linux 1 vm -->webserver apache
+
+Linxu 2 vm -->alpine2 mysql
+
+
+webserver container
+
+db container
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

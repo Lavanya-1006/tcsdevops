@@ -1,0 +1,385 @@
+Day 6
+
+Kubernetes cluster (kubeadm)
+
+Why Kubernetes required
+
+
+Containers using docker,podman..
+
+Docker is single host solution
+
+container  cont1
+docker
+vm1     vm2
+
+
+single host solution:
+
+if host gets fail, all the container will fails
+
+scalability, ha,lb
+
+
+docker cli
+ vm
+docker 
+vm vm
+-----------
+k8s
+
+opensource project
+
+ Redhat openshift
+ VMware tanzu
+  suse rancher
+
+Cloud
+EKs
+GKE
+AKS
+
+Write a declartion-->executed
+
+create two containers from nginx image-->oheration engine--->schedule to the workernodes/client
+
+kubeadm: Tool to setup Kubernetes cluster
+
+kind:
+
+minikube
+
+
+kubeadm init-->control plane/master/coe
+
+kubeadm join-->slave/wokernode
+
+
+1) enabled Linux overlay driver and netfilter driver for ipv4 and ipv6
+
+Layer2 :data link layer-->peer to peer 
+
+vm --vm1 -->vm2
+
+
+Layer3: routing 
+
+
+c1	  c2
+
+Linux1  Linux2
+
+flannel overlay plugin
+
+Layer2 traffic using layer3 capability is called network over laying
+
+VMware vxlan,geneve
+
+
+2) kubeadm: tool
+
+   kubectl: command line utility for user to communicate to k8s control plane
+
+  kubelet: agent which be running on each Linux box
+
+
+3) swapoff -a 
+
+kubelet will not run, k8s cluster will not come up
+
+4) kubeadm init --pod-network-cidr=10.244.0.0/16
+
+	- Prefilght check
+        - download images for cp component
+        - create the config file
+	- all the k8s master component will communicate using tls (pki:public key infrastrutre)
+5) admin.conf: login detail for admin account
+
+6) cni (container network interface plugin) for network overlaying
+
+7) join command we run it worker node
+
+8) 6443 port is required to communicate k8s master
+
+----------------------------------
+
+k8s control plane
+
+apiserver
+etcd
+scheduler 
+controller manager
+
+
+worker node
+kubelet
+docker(container runtime)
+kube-proxy
+
+
+----------------
+
+
+k8s is api based solution, they take rest api request
+
+get,put,post,delete
+
+Predefined set api
+
+I want to create a container k8s.
+first request will go to api-server,request file you will write in json/yaml format
+
+api-server is having the definition of apiresoruces
+
+kubectl get nodes--->request api server
+
+--Frontend for enduser
+--Validate the request
+--Provide the response
+
+-
+
+vm1 c1 -->to c1
+
+vm2
+---------
+
+yaml
+
+test.yaml
+
+yet another markup language
+
+declaration based language
+
+Bank account (api-server) which will having all the api definition
+
+Chequebook-->standard format (yaml)
+
+kubectl create -f <yamlfile name>--------->apiserver
+
+Three syntax
+
+how to define key value
+list and map/dictonary
+
+app: value
+name: amit
+account: 4444
+
+
+space sensitive language
+
+
+List:
+
+student
+- amit
+   age: 40
+   gender: male
+- arun
+- jay
+
+-------------------------------------------
+
+Majority:
+
+docker run -d --name amitest nginx
+
+apiVerion: v1
+kind: Pod
+metadata:
+  name: test
+spec:
+  containers:
+   - name: amittes
+     image: nginx
+
+
+kubectl create -f testpod.yaml-->apiserver (validation of your yaml)--etcd-->nopod with same name--
+
+--apiserver-->ask scheduler where to schudele the container(pod) (node1)-->yaml file will forwarded to kubelet
+
+
+-->containerd-->go and create a container using nginx image
+
+continerd-->pull image
+containerd-->start container
+
+a :apiversion
+k : kind
+m : metadata
+s : spec
+
+
+kubectl create -f testpod.yaml
+
+apiserver-->Etcd -->yes to proceed-->apiserver going to schd-->schd will assign the workernode-->apiserver will send the yaml to
+
+specific node kubelet-->kubelet will ask container run time to create container
+
+
+ -->no already there
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
