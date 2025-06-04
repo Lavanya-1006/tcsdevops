@@ -1,0 +1,382 @@
+Day 8:
+
+api-->kubectl api-resources
+
+
+Rest operation: get put post delete
+
+kubectl-->create/delete/get/describe/apply
+
+pod-->wrapper around containers. ip,storage
+
+akms
+
+1pod 1container
+single multicontainer: Service mesh 
+
+
+replication contorller-->to create replica pods
+
+Deployment-->Replica set
+
+strategy types: rolling update and recreate
+
+Pod-->upgrade the container image-->
+
+delete the old one and create a new one.
+
+p1 p2 p3--->app v1
+
+
+kubectl set image-->app v1 -->v2
+-----------------------------------------------
+
+1000-->update strategy-->
+
+canary, A/B testing,shadow,blue/green
+
+Service mesh/ingress
+
+
+p1 p2 p3-->rolling update app v1
+
+app v2 p1,p2,p3
+
+appv1 appv2
+
+web site is not accessible
+
+web site is accessible with
+
+
+
+https://spacelift.io/blog/kubernetes-deployment-strategies
+
+------------
+
+Networking api
+
+
+pod identity is dynamic
+
+autoscaling will add or remove
+
+
+p1 p2 p3 p4 p5 (replica pod)-->webserver------>other replica pod db server
+
+
+update
+
+number 3-5
+
+5-->3
+
+
+
+-----------------------
+
+api-->service api, we microservice
+
+
+
+
+
+
+-----------VIP----------(Service type resource)->round robin way to the replica pod
+
+p1 p2 p3 + p4 p5
+
+Service api will identiy the pod ip address : This discovery process service discovery..
+
+
+
+Service name: podip podbip (Endpoint table)
+
+Service discovery mechanism: service api will go and automatically map the pod ip address as the endpoint in endpoint table.
+
+How service will know which repective pod I need to send the traffic?
+
+
+selector -->label
+
+service api-->Selector definition
+
+label: already there pod
+
+IF selector key value matches with label, discovery process will automatically update the end table
+
+
+
+--------
+
+ow.com-->LB-->vm1 or vm2 or vm3
+
+=======LB============= 
+
+target group
+
+vm1 vm2 vm3 (web application)
+
+================
+
+
+--Service type resource) -->vip mapped and registerd dns
+
+
+p1 p2 p3(web application): Pod
+
+
+How svc know which pod I need to send traffic
+
+
+discovery process and find the matching labeled pod
+
+----------
+
+Nodeport
+
+
+
+Node: Workernode(VM)
+
+-->nodeport nubmer-->svcinterip-->pod
+
+
+------------------------
+
+pv : persistent volume: represent the piece storage where data resides
+
+pvc : persistent volume claim-->whoever will claim the pv
+
+
+1 x 1 (pv-->pvc)
+
+
+
+PV
+PVC
+
+static provision: pv type resource
+
+
+yaml-->kind Persistent volume, size of vm, from where it should allocate space location
+
+storage class: kind of svc manual
+
+accessmode:across multiple ro,rw
+
+PVC:
+how much space you need
+storage class
+what access mode
+
+
+PVC-->pv automatically
+
+1) PV
+2)PVC
+3) PVC will go map pv based on the size,sc and access mode
+
+If static provisioning pv will be created first
+
+
+
+PV is external hd
+claim is usb cable
+usb cable connect to the usbport of your laptop (mounted)
+
+
+--------------
+
+
+1-->pv--2pvc-->pvc claim the pv
+
+--------------------
+
+dynamic provisioning
+
+pvc (request) 3gb--->provisoners--->target (allocated space)--Pv and assigne to you
+
+Provisioners are the storage plugin for Kubernetes
+
+
+Worker node (NFS ) :Target
+
+
+NFS:ip address share location
+
+
+claim
+
+sc-->provisoner-->target
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rolling update will auto trigger
+
+
+
+

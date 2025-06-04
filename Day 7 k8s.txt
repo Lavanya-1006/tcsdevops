@@ -1,0 +1,410 @@
+Day 7 k8s
+
+two nodes
+
+one node-->control plane
+
+second node-->worker node
+
+cp-->apiserver, etcd, schd,controller manager
+
+wn-->kubelet,kube-proxy and etcd
+
+api based solution, opensource and managed by cncf
+
+kubectl --create
+	--get
+	--describe
+	--delete 
+	--apply
+
+Pod-->pod is k8s api to deploy the container.
+
+yaml.
+
+apiVersion
+kind
+metadata
+spec
+
+----
+#testpod.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: testpod
+spec:
+  containers:
+  - name: tetscotnainer
+    image: nginx
+
+
+kubectl create -f testpod.yaml
+
+Request will go to k8s cp apiserver-->validates the yaml file-->etcd-->will check that resource is already there or not
+
+-->if not , it will send the communication to apiserver-->apiserver will go to schud, and check which node can be used to schd
+container
+
+-->schd will assign the node-->Apiserver will fwd the yaml file to kubelet of that particular node-->kubelet-->container runtime
+
+containerd-->pullimage and start container
+
+
+---------
+
+k8s cluster===?
+
+control plane--w1 w2 w3
+
+4 vm-->cluster
+
+vm-->2cpu 4gbram x4
+
+cluster--->8 cpu and 16 gb 
+
+k8s cluster will be used two teams
+
+
+create a logical grouping which provides the resource.
+
+
+dev
+		k8s how can I divide this cluster across two teams?
+qa
+
+
+Dev-->pod example-pod-->dev namespace --under the same cluster
+
+qa-->pod example-pod-->qa namepace
+
+
+----------------------------
+
+k8s api for replication
+
+What pod is running?
+
+containerize application..
+
+Load increases on application what you do?
+
+We increase number of application instances
+
+---
+pod is running, you need add more similar type of application pod
+
+pod(webserver)+webserver
+
+irctc-->webportal-->10am
+
+containers which is serving the request
+
+c1 c2 c3 (webserver)
+
+Replication:
+
+template: where you will keep the pod definition
+
+3 replicas: 3 pod using this template definition they will creating the pod
+
+
+------------
+
+Replication controller
+
+apiVersion: v1
+kind: ReplicationController
+metadata: 
+  name: rc
+spec:
+ replicas: 3 (#desire state)
+ selector:
+   app: db
+ template:
+   metadata:
+     label:
+      app: db
+   spec:
+     containers:
+     - name: mycontainer
+       image: nginx
+
+
+actual state
+rc-hdasf		app: db
+rc-dfada		app: db
+rc-erwre		app: db
+
+
+To make sure your actual state is matching with desire state
+
+To identify the actual state, how many replica pods are running, rc has to identify the replica pod
+
+using the selector key-vaule pararemter: check with kubelet which replica pod is having same key:value
+
+
+Houses: red house green house
+
+Red house-->who is wearing the red t-shirt
+
+
+------------
+
+deployment-->rc
+
+apiVersion: apps/v1
+kind: deployment
+metadata:
+  name: firstdep
+spec:
+  replicas: 3
+  matchlabels:
+    app: db
+  template:
+    containers:
+    - name: firstcontainer
+      metad
+
+
+More powerfull command line
+
+upgrade strategy?
+
+
+Pod-->container image
+
+container image: v1 -->want to upgrade the container image v1-->v2
+
+In containization world when ever you want to upgrade the container image from one version to another version
+
+it will delete the old container and create the new container
+
+container v1 -->Delete
+container v2-->create
+
+ 3 replicas:
+
+LB
+
+HA
+
+pods are running same container images
+
+p1 p2 p3 (nginx:v1 -->nginx v2)
+
+upgrade strategy
+
+
+How to upgrade this replica pods which will be the part of upgrade strategy
+
+
+--Rolling update
+-- recreate
+
+If I dn't mention the strategy type in deployment, by default the strategy type is rolling update
+
+max surge: 25%
+max unavailable : 25%
+
+
+nginx:1.16.1-->nginx:1.14.2
+
+the update strategy will trigger:
+
+
+3 replicas: 3 pods are running with container image 1.16.1
+	    1 new pod with image 1.14.2
+	    2 old pods 1.16.1
+	    2 new pod 1.14.2
+	    1 old pod 1.16.1
+	    3 new pod 1.14.2
+            0 old pods
+
+
+Why deployment current state has allowed to go beyond desire state?
+
+3x.25=.75(~1)
+
+3x.25=.75(~1)
+
+
+number of current state pod be between 2 to 4)
+
+
+
+-----------
+
+recreate:
+
+p1 p2 p3 :nginx 1:14.1 -->1.16.1
+
+p1 p2 p3 it will delete all old version
+
+p1 p2 p3 all new version
+x
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
