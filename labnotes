@@ -434,3 +434,459 @@ docker container rm alpine1 alpine2 alpine3 alpine4
 
 docker network rm alpine-net
 
+
+LAb 5: cicd for dockerfile
+
+https://www.openwriteup.com/?page_id=1350
+
+
+sudo usermod -a -G docker jenkins
+sudo chown jenkins:docker /var/run/docker.sock
+sudo chmod 660 /var/run/docker.sock
+
+From Manage plugin install docker pipeline plugin
+Create a pipeline And select option “pipeline with scm”
+Provide this git link
+https://github.com/amitopenwriteup/cicd.git
+Branch : master
+Jenkinsfile name: Jenkinsfile
+
+
+---------------------
+02/06
+
+Install docker in second vm
+
+install dcoekr 
+LAb 1 : https://www.openwriteup.com/?page_id=785
+
+
+yum remove podman*
+
+yum remove runc* containerd* buildah*
+
+sudo yum install -y yum-utils
+
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+
+sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+systemctl enable docker
+
+
+systemctl start docker
+
+systemctl status docker
+
+Lab 2:
+
+1) note down the ip address of second vm
+
+ip addr|grep ens
+
+2) First .1 linux vm
+
+ssh root@ipaddrsss
+#password is root123
+
+Run step1 in both the linux vm
+
+https://www.openwriteup.com/?page_id=866
+
+step2 : Execute in both vms
+
+https://v1-31.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+
+step 3:
+ master .1
+
+sudo firewall-cmd --permanent --add-port=6443/tcp 
+sudo firewall-cmd --permanent --add-port=2379-2380/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp 
+sudo firewall-cmd --permanent --add-port=10251/tcp 
+sudo firewall-cmd --permanent --add-port=10259/tcp 
+sudo firewall-cmd --permanent --add-port=10257/tcp
+sudo firewall-cmd --permanent --add-port=179/tcp
+sudo firewall-cmd --permanent --add-port=4789/udp
+sudo firewall-cmd --reload
+
+worker node /slave 2
+sudo firewall-cmd --permanent --add-port=179/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --permanent --add-port=30000-32767/tcp
+sudo firewall-cmd --permanent --add-port=4789/udp
+sudo firewall-cmd --reload
+Run on both nodes
+
+swapoff -a
+sudo sed -i '/ swap / s/^/#/' /etc/fstab
+
+sh -c "containerd config default > /etc/containerd/config.toml"
+sed -i 's/ SystemdCgroup = false/ SystemdCgroup = true/' /etc/containerd/config.toml
+systemctl restart containerd.service
+systemctl restart kubelet.service
+systemctl enable kubelet.service
+
+
+step 4 only on master
+
+kubeadm init --pod-network-cidr=10.244.0.0/16
+
+
+Step5: Runs only in master node
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Install the network plugin in master node
+step 6: only in master
+ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+step 7 verify
+
+sudo firewall-cmd --reload
+
+kubectl get nodes
+
+
+step 8 on worker node
+
+on the master
+
+kubeadm token create --print-join-command
+
+
+outp run the join command run in workernode
+---------------------
+
+Lab9
+ create pod
+vi testpod.yaml
+
+copy and paste:
+apiVersion: v1
+kind: Pod
+metadata:
+  name: testpod
+spec:
+  containers:
+  - name: firstcontainer
+    image: nginx            
+
+
+kubectl create -f testpod.yaml
+
+kubectl get pods
+kubeclt describe pods testpod
+kubectl get pods -o wide
+
+Check taint
+kubectl get nodes
+
+kubectl describe nodes localhost.localdomain|grep Taint
+
+
+03/06
+
+kubectl get nodes
+kubectl get pods
+
+Lab 1:
+
+rm -rf k8s
+
+ git clone https://github.com/amitopenwriteup/k8s.git
+
+cd k8s
+kubectl create -f multicont.yaml
+kubectl get pods
+kubectl describe pod multi-container-pod
+kubectl exec multi-container-pod -c main-container -- date
+kubectl exec multi-container-pod -c sidecar-container -- ls
+kubectl delete pod multi-container-pod
+
+LAb 2
+kubectl create ns labs
+
+kubectl describe ns labs
+
+kubectl get ns labs -o yaml
+
+kubectl delete ns labs
+
+Lab 3
+
+
+cd k8s
+cat devpod.yaml
+kubectl create ns dev
+kubectl create -f devpod.yaml
+kubectl get pods --namespace=dev
+kubectl describe pod busybox-pod --namespace=dev
+kubectl delete pod busybox-pod --namespace=dev
+
+
+Lab: 4
+
+ kubectl create -f repc.yaml
+kubectl get rc
+kubectl describe rc hello-dep
+kubectl get pods --show-labels
+kubectl get pods
+kubectl delete pods <provide one of the replica pod name?
+kubectl get pods --show-labels
+# for deleting rc
+kubectl delete -f repc.yaml
+
+
+Lab 5
+
+
+kubectl create -f dep.yaml
+kubectl get deployment
+kubectl get pods
+kubectl get rs
+kubectl describe deployment nginx-deployment
+#For deleting the deployment
+kubectl delete deployment nginx-deployment
+
+
+Lab 6
+
+kubectl create -f ru.yaml
+kubectl get deployment
+kubectl get pods
+kubectl get rs
+kubectl describe deployment hello-rcp
+# update the image
+ kubectl set image deployment/hello-rcp hello-dep=nginx:1.16.1
+# Check rollout status
+kubectl rollout status deployment/hello-rcp
+#Rollout history
+kubectl rollout history deployment/hello-rcp
+#roll back
+ kubectl rollout undo deployment/hello-rcp --to-revision=1
+#scaleup
+ kubectl scale deployment/hello-rcp --replicas=10
+
+kubectl rollout history deployment hello-rcp --revision=0
+kubectl rollout history deployment hello-rcp --revision=2
+#delete
+ kubectl delete deployment.apps/hello-rcp
+
+LAb7 
+
+Recreate strategy
+
+kubectl create -f rc.yaml
+kubectl get deployment
+kubectl get pods
+kubectl get rs
+kubectl describe deployment hello-dep
+# update the image
+kubectl set image deployment/hello-dep hello-dep=nginx:1.16.1
+# Check rollout status
+kubectl rollout status deployment/hello-dep
+#Rollout history
+kubectl rollout history deployment/hello-dep
+#roll back
+kubectl rollout undo deployment/hello-dep --to-revision=1
+#scaleup
+kubectl scale deployment/hello-dep --replicas=10
+#delete
+kubectl delete deployment.apps/hello-dep
+
+
+--------------------
+04/06
+
+git clone https://github.com/amitopenwriteup/k8s.git
+cd k8s
+
+Lab1
+
+kubectl create -f svc.yaml
+kubectl get svc
+kubectl get ep
+kubectl describe svc nginx-service-rc
+kubectl create -f dep.yaml
+kubectl get pods -o wide
+kubectl get ep
+
+##Delete the service
+kubectl delete -f svc.yaml
+kubectl detete -f dep.yaml
+
+
+-------------LAb2
+
+kubectl create -f dep.yaml
+kubectl create -f Nodeport.yaml
+kubectl get svc
+kubectl get ep
+
+#Note down the worker node (join)
+
+ip addr|grep ens
+
+#Open the ip in the broser
+
+http://ipaddr:30007
+
+#Delete the nodeport service
+kubectl delete svc my-service
+
+
+Lab 3-5
+
+kubectl create -f pv.yaml
+kubectl get pv
+kubectl describe pv pv-volume-2
+
+kubectl create -f pvc.yaml
+kubectl get pvc
+kubectl get pv
+
+
+#Modify the pvpod.yaml, claim name: pvc-claim-3
+
+kubectl create -f pvpod.yaml
+kubectl get pod
+kubectl exec mypod -it -c myfrontend -- /bin/bash
+cd /var/www/html
+#create a file using below cmd
+touch a
+#exit from the pod:
+exit
+#check the file created in worker node
+ls /mnt/data/
+--------------
+
+Lab 6 : Dyanmic provisioning
+
+#NFS storage 
+
+#For rocky linux
+sudo dnf install -y nfs-utils
+
+#Making a directory in host machine where PersistentVolumeClaim (PVC) will be created
+
+sudo mkdir /srv/nfs/kubedata -p
+#Now we will edit the exports file and add the directory 
+#which we created earlier step in order to export it into the remote machine
+
+sudo vi /etc/exports
+
+/srv/nfs/kubedata    *(rw,sync,no_subtree_check,no_root_squash,no_all_squash,insecure)
+
+sudo systemctl enable nfs-server
+sudo systemctl start nfs-server
+sudo systemctl status nfs-server
+exportfs
+
+sudo exportfs -rav
+
+
+Master only run below command
+
+dnf install nfs-utils -y
+
+#Install NFS client packages in nodes
+wget https://get.helm.sh/helm-v3.13.2-linux-amd64.tar.gz
+tar -zxvf helm-v3.13.2-linux-amd64.tar.gz
+mv linux-amd64/helm /bin/helm
+
+#Add the stable repository in Helm repo and update
+helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner
+
+helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=10.0.15.2 --set nfs.path=/srv/nfs/kubedata 
+
+kubectl get po
+
+#create a yaml file: nfsclaim.yaml using vi and copy and paste below lines till 818
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvctest
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Mi
+
+kubectl create -f nfsclaim.yaml
+kubectl get pv
+kubeclt get pvc
+
+vi podnfs.yaml
+#Copy paste below code
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+spec:
+  volumes:
+  - name: myvol
+    persistentVolumeClaim:
+      claimName: pvctest
+  containers:
+  - image: busybox
+    name: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 600"]
+    volumeMounts:
+    - name: myvol
+      mountPath: /data
+
+    
+kubectl create -f podnfs.yaml
+kubectl get pods
+kubectl describe pod busybox
+
+#In the worker node
+
+ls /srv/nfs/kubedata
+
+Assignment
+
+Assignment: Create a pvc using nfs-client storage class size 200Mi and crate a pod using nginx container and map to /var/www/html of nginx container to newly created pvc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
