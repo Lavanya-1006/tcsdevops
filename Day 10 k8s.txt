@@ -1,0 +1,61 @@
+Day 10:
+
+Pod,ns,deployment,rc,service,configmap,secret,pv,pvc,role,rolebiniding
+
+
+
+Node,pods,: Prometheous and Grafana
+
+Prometheous is monitoring tool, Generating dashboard based on data prometheous provies
+
+Prometheous is a datasource for Grafana. Datasoruce will provide data and based on the data, dashboard will be created
+by Grafna
+
+---------------------------------------------------------------------------------
+
+k8s--prom--timeseries
+
+--------------------------
+Ingress:
+
+E-commerce website-->www.amazon.in
+
+
+
+Add to cart-->application a
+
+payment-->application b
+
+tracking-->application c
+
+
+
+
+
+Single point accessibility is concern
+
+amazon-->svc-->appa
+		appb
+		appc
+
+
+single endpoint to access the multiple svc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
