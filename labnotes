@@ -1,5 +1,6 @@
 Lab 1
  
+
 Jenkins master setup: https://www.jenkins.io/doc/book/installing/linux/#red-hat-centos
  
 sudo wget -O /etc/yum.repos.d/jenkins.repo  https://pkg.jenkins.io/redhat-stable/jenkins.repo
@@ -555,7 +556,6 @@ on the master
 
 kubeadm token create --print-join-command
 
-
 outp run the join command run in workernode
 ---------------------
 
@@ -577,7 +577,7 @@ spec:
 kubectl create -f testpod.yaml
 
 kubectl get pods
-kubeclt describe pods testpod
+kubectl describe pods testpod
 kubectl get pods -o wide
 
 Check taint
@@ -856,37 +856,908 @@ Assignment: Create a pvc using nfs-client storage class size 200Mi and crate a p
 
 
 
+05/06
+
+Lab1
+kubectl create -f role.yaml
+kubectl get roles
+kubectl describe role pod-reader
+
+Lab2:
+kubectl create -f rolebind.yaml
+ kubectl get rolebindings
+ kubectl describe rolebindings read-pods
+ 
+Lab3: 
+#Create a private key for your user. In this example, we will name the file employee.key:
+openssl genrsa -out employee.key 2048
+#Create a certificate sign request employee.csr using the private key you just created (employee.key in this example). Make sure you specify your username and group in the -subj #section
+openssl req -new -key employee.key -out employee.csr -subj "/CN=employee/O=test"
+#Generate the final certificate employee.crt by approving the certificate sign request, employee.csr, you made earlier. Make sure you substitute the CA_LOCATION placeholder with the location of your cluster CA. In this example, the certificate will be valid for 500 days:
+openssl x509 -req -in employee.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out employee.crt -days 500
+kubectl config set-credentials employee --client-certificate=employee.crt --client-key=employee.key
+#Add a new context with the new credentials for your Kubernetes cluster.
+kubectl config set-context employee-context --cluster=kubernetes --namespace=default --user=employee
+kubectl config get-contexts
+kubectl config use-context employee-context
+kubectl get pods
+ kubectl delete pods <pod name>
+#Change to admin
+ kubectl config use-context kubernetes-admin@kubernetes
+
+kubectl delete -f rolebind.yaml
+kubectl delete -f role.yaml
+
+------------------------------
+Try to Lab 4
+
+Modify the above role.yaml for deployment, deployment api group
+
+kubectl api-resources
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: pod-reader
+rules:
+- apiGroups: ["apps"] # "" indicates the core API group
+  resources: ["deployments"]
+  verbs: ["get", "watch", "list"]                            
+
+
+kubectl create -f role.yaml
+kubeclt create -f rolebind.yaml
+kubectl config use-context employee-context
+kubectl get deloyment
+kubectl delete deployment <name of the deployment>
+
+
+Lab 5:
+    
+ kubectl create -f cm.yaml
+kubectl get cm
+kubectl describe cm game-demo
+
+
+kubectl create -f cm-pod.yaml
+kubectl describe pod configmap-demo-pod
+kubectl exec configmap-demo-pod -c demo -it -- /bin/sh
+export
+ls /config/
+exit
+
+Lab 6
+
+kubectl create -f sec.yaml
+kubectl get secret
+kubectl describe secret database-creds
+
+kubectl create -f secenvpod.yaml
+kubectl describe pod php-mysql-app
+kubectl exec php-mysql-app -c php-app -it -- /bin/bash
+#check the env value
+export
+exit
+#Delete the pod
+kubectl delete -f secenvpod.yaml
+
+
+Project
+
+git clone https://github.com/amitopenwriteup/threetierk8sproject.git
+cd threetierk8sproject
+#Creating namespace
+ kubectl create -f ns.yaml
+ kubectl get all -n wordpress
+#Creating secrets for db
+ kubectl create -f secret.yaml
+ kubectl describe secret/db-secret -n wordpress
+#Creating pv,pvcfor wp and db
+ kubectl create -f pvpvc.yaml
+ kubectl create -f pvpvcwp.yaml
+ #Creating deployment and serice for db
+ kubectl create -f dbdepsvc.yaml
+ kubectl get svc -n wordpress
+ kubectl get ep -n wordpress
+ kubectl get po -n wordpress
+# Creting phpadmin for db
+ kubectl create -f phpdepsvc.yaml
+ kubectl get svc -n wordpress
+
+ #Creating wp
+ kubectl create -f wordpressdepsvc.yaml
+ kubectl get all -n wordpress
+
+ -->WP website created-->db
+--> php admin will be managing db
+
+WP-->Expose to outside world
+
+http://workernodeip:30080
+exp: http://10.0.15.2:30081
+http://workernodeio:30081
+
+--------------------------
+06/06
+
+Lab1 
+
+wget https://get.helm.sh/helm-v3.10.2-linux-amd64.tar.gz
+tar -zxvf helm-v3.10.2-linux-amd64.tar.gz
+mv linux-amd64/helm /usr/local/bin/helm
+
+Step 1: Search for the Prometheus helm chart using the below command
+
+helm search hub Prometheus
+
+#Step 2 adding and upatting the rep
+
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+#Step 3
+helm install prometheus prometheus-community/prometheus
+
+Step 4
+kubectl get pods
+
+#describe command run it for pending 
+
+kubectl describe po <name of pending pod>
+
+kubectl get pvc
+
+step  5
+kubectl edit pvc prometheus-server
+storageClassName: nfs-client
+Change the second pvc as well
+kubectl edit pvc storage-prometheus-alertmanager-0
+storageClassName: nfs-client
+
+Step 6
+kubectl get svc
+kubectl edit svc prometheus-server
+
+-search for tpe
+
+type: NodePort
+
+kubectl get svc
+
+open in browser
+
+http://workernodeip:portnumber
+
+example
+
+http://10.0.15.2:32416
+
+Lab2: Grafana
+Grafana installation
+ 
+helm search hub Grafana
+helm repo add grafana https://grafana.github.io/helm-charts 
+helm repo update
+helm install grafana grafana/grafana
+
+
+Get the secret/password
+
+   kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+   
+Modify the service type to NodePort
+kubectl edit svc grafana   
+kubectl get svc
+
+Open in browser
+http://workdernode ip:portnumber
+example
+http://10.0.15.2:31114
+
+Login
+username : admin
+password: output of line 1046
+
+
+Ingress controller lab:
+    
+ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.3.0/deploy/static/provider/cloud/deploy.yaml
+
+kubectl get pods --namespace=ingress-nginx
+
+kind: Pod
+apiVersion: v1
+metadata:
+  name: apple-app
+  labels:
+    app: apple
+spec:
+  containers:
+    - name: apple-app
+      image: hashicorp/http-echo
+      args:
+        - "-text=apple"
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: apple-service
+spec:
+  selector:
+    app: apple
+  ports:
+    - port: 5678 # Default port for image
+
+
+---
+
+kind: Pod
+apiVersion: v1
+metadata:
+  name: banana-app
+  labels:
+    app: banana
+spec:
+  containers:
+    - name: banana-app
+      image: hashicorp/http-echo
+      args:
+        - "-text=banana"
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: banana-service
+spec:
+  selector:
+    app: banana
+  ports:
+    - port: 5678 # Default port for image
+
+--------
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-localhost
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: demo.localdev.me
+    http:
+      paths:
+        - path: /apple
+          backend:
+            service:
+              name: apple-service
+              port:
+                number: 5678
+          pathType: Prefix
+        - path: /banana
+          backend:
+             service:
+               name: banana-service
+               port:
+                 number: 5678
+          pathType: Prefix
+
+
+kubectl edit validatingwebhookconfiguration ingress-nginx-admission
+
+
+kubectl create -f ingress.yaml
+
+kubectl get ingress
+
+kubectl port-forward --namespace=ingress-nginx service/ingress-nginx-controller 8080:80
+
+$ curl -kL http://demo.localdev.me:8080/apple
+apple
+
+$ curl -kL http://demo.localdev.me:8080/banana
+banana
+
+$ curl -kL http://demo.localdev.me:8080/notfound
+default backend - 404
 
 
 
 
+demo.localdev.me/apple-->Applesvc-->apple pod
+demo.localdev.me/banana-->bananasvc-->banan
+
+
+----------------------------------------------
+helm packaging
+
+wget https://get.helm.sh/helm-v3.10.2-linux-amd64.tar.gz
+tar -zxvf helm-v3.10.2-linux-amd64.tar.gz
+
+helm create testchart
+cd testchart
+
+cd templates
+rm -rf *
+
+cd ..
+
+kubectl create deployment nginx --image=nginx --dry-run=client -o yaml >> templates/deployment.yaml
+
+ #create a deployment to expose service
+kubectl create deployment nginx --image=nginx
+
+kubectl expose deploy nginx --port 80 --type NodePort --dry-run=client -o yaml > templates/service.yaml
+
+echo "This is first helm chart and it will deploy nginx application" >>templates/NOTES.txt
+
+cd ..
+
+helm lint ./testchart
+
+#delete the deployment
+
+kubectl delete deployment nginx
+kubectl delete svc nginx
+
+12)#Do the dry run
+helm install testchart ./testchart --dry-run
+
+13) #install
+
+helm install testchart ./testchart
+#Check service and deployment
+kubectl get deployment
+kubectl get svc
+
+14) #check
+helm list
+
+15) #package
+helm package testchart/
+#Successfully packaged chart and saved it to: /root/testchart-0.1.0.tgz
+16) #Uninstall
+helm uninstall testchart
+#Check service and deployment
+kubectl get svc
+kubectl get deployment
 
 
 
+09/06
+
+From the cotnrol node (where is ansible installed)
+
+Lab1
+
+ssh-keygen -t rsa
+
+ssh-copy-id root@secondvmip
+
+Example
+
+ssh-copy-id root@10.0.15.2
+
+PAssword: root123
 
 
+Verify
+
+ssh root@managenode ip
+
+example
+
+ssh root@10.0.15.2
 
 
+#Login without password then we are good
+
+exit
+
+------------------------------------
+
+ini or yaml
+
+Lab2:
+creation of inventory.ini
+    
+[local]
+localhost ansible_connection=local
+[remote]
+10.0.15.2 ansible_user=root ansible_connection=ssh
+
+Run below command
+
+ansible -i inventory.ini all -m ping
+ansible -i inventory.ini local -m ping
+ansible -i inventory.ini remote -m ping
 
 
+Lab3
+
+Create playbook: lab1.yaml
+
+- name: ping task
+  hosts: all
+  tasks:
+  - name: ping testing
+    ansible.builtin.ping:
+  - name: pring msg
+    ansible.builtin.debug:
+      msg: hello
+
+ansible-playbook -i inventory.ini lab1.yaml
+
+Lab 4:
+Create playbook: lab2.yaml
+
+- name: ping task
+  hosts: all
+  tasks:
+  - name: ping testing
+    ansible.builtin.ping:
+- name: second play
+  hosts: remote
+  tasks:
+  - name: pring msg
+    ansible.builtin.debug:
+      msg: hello
+
+ansible-playbook -i inventory.ini lab2.yaml
 
 
+Lab 5:
+
+---
+- name: Add remote host dynamically
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Add remote host to inventory
+      ansible.builtin.add_host:
+        name: 10.0.15.2
+        groups: remote
+        ansible_user: root
+        ansible_connection: ssh
+
+- name: Ping remote hosts
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Ping testing
+      ansible.builtin.ping:
+
+- name: Second play - print message
+  hosts: remote
+  gather_facts: false
+  tasks:
+    - name: Print message
+      ansible.builtin.debug:
+        msg: "Hello from dynamically added host!"
 
 
+ansible-playbook lab3.yaml
 
 
+Lab 6: lab4 .yaml
+
+Manage node:
+
+adduser testuser
+passwd testuser
+
+vi /etc/sudoers
+
+testuser ALL=(ALL) NOPASSWD: ALL
+
+esc+:wq!
+
+go to control/master node
+modify invientory.ini
+
+instead of root give testuser
+
+10.0.15.2 ansible_user=testuser ansible_connection=ssh
+
+touch index.html
+
+- name: install package
+  hosts: all
+  become: true
+  tasks:
+    - name: dnfinstaller
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    - name: copy file
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+ansible-playbook -i inventory.ini lab4.yaml
 
 
+lab  7
+
+ansible-vault create vault.yml
+
+ansible_user_password: "mention your testuser password"
+
+Modify inventory.ini
+
+10.0.15.2 ansible_user=testuser ansible_connection=ssh ansible_password="{{ ansible_user_password }}
+
+#Create another file lab5.yaml
+
+- name: install package
+  hosts: all
+  become: true
+  vars_files:
+    - vault.yml
+  tasks:
+    - name: dnfinstaller
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    - name: copy file
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+
+ansible-playbook -i inventory.ini lab5.yaml --ask-vault-pass
 
 
+lab 8
+
+ansible-galaxy role init test
+
+create account on galaxy
+
+https://galaxy.ansible.com/ui/
+
+------------------------------------------
+10/06
+
+Lab1
+
+rm -rf test
+
+1) Run below command
+
+ ansible-galaxy role init test
+
+2) copy the section, to test/tasks/main.yaml
+
+---
+- name: dnfinstaller
+  ansible.builtin.dnf:
+     name: httpd
+     state: present
+- name: copy file
+  copy:
+     src: files/index.html
+     dest: /var/www/html/index.html
+     owner: root
+     group: root
+     mode: '0644'
+3) create a index.html file under test/files/
+
+touch test/files/index.html
+
+4) create a playbook lab5.yaml, outside of test folder
+
+---
+- hosts: all
+  become: true
+  vars_files:
+    - vault.yaml
+  roles:
+   - test
+5) Run the command
+ansible-playbook -i inventory.ini lab5.yaml  --ask-vault-pass
+   
 
 
+ansible-galaxy role install citizennone.rkhunter
+
+LAb 2
+How to publish the role to ansible-galaxy
 
 
+go to role folder
+
+cd test
+git init
+git add .
+git commit -m "add"
+
+https://www.openwriteup.com/?page_id=1081
 
 
+Lab 3
+1)https://galaxy.ansible.com/ui/
+2) Login using github
+3) go to galaxy home page, collection-->api-token
+4) ansible-galaxy import <GitHub user name> <repo name on github> --token <token id>
+example
 
+ansible-galaxy import amitopenwriteup myansiblerole --token 208fb92ea9dfe552476822dd01a8dd1b02ea13e7
 
+Lab 4:
+1) Create a lab6.yaml file
 
+---
+- hosts: all
+  become: true
+  vars_files:
+    - vault.yaml
+  tasks:
+    - name: Install security updates
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: latest
+      loop:
+        - httpd
+        - openssh
+      ignore_errors: yes 
+    - name: Check if docker is installed
+      ansible.builtin.command: docker --version
+      register: output
+      ignore_errors: yes    
+    - ansible.builtin.debug:
+        var: output
+    - name: Install docker
+      ansible.builtin.dnf:
+        name: docker.io
+        state: present
+      when: output.failed
+        
 
+2) run 
+ansible-playbook -i inventory.ini lab6.yaml --ask-vault-pass
 
+Lab 5;
+---
+- name: Install Docker based on OS family
+  hosts: all
+  become: true
+  vars:
+    docker_packages_redhat:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    docker_packages_debian:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    docker_repo_url_redhat: https://download.docker.com/linux/centos/docker-ce.repo
+    docker_repo_url_debian: https://download.docker.com/linux/ubuntu
+    docker_repo_key_url_debian: https://download.docker.com/linux/ubuntu/gpg
+  tasks:
+    - name: Install prerequisites on RedHat
+      dnf:
+        name: dnf-plugins-core
+        state: present
+      when: ansible_os_family == "RedHat"
+    - name: Add Docker CE repo on RedHat
+      get_url:
+        url: "{{ docker_repo_url_redhat }}"
+        dest: /etc/yum.repos.d/ -ce docker.repo
+      when: ansible_os_family == "RedHat"
+      notify: Restart Docker
+    - name: Install Docker packages on RedHat
+      dnf:
+        name: "{{ docker_packages_redhat }}"
+        state: present
+      when: ansible_os_family == "RedHat"
+      notify: Restart Docker
+    - name: Install prerequisites on Debian
+      apt:
+        name:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
+        state: present
+      when: ansible_os_family == "Debian"
+    - name: Add Docker GPG key on Debian
+      apt_key:
+        url: "{{ docker_repo_key_url_debian }}"
+        state: present
+      when: ansible_os_family == "Debian"
+    - name: Add Docker repository on Debian
+      apt_repository:
+        repo: "deb [arch=amd64] {{ docker_repo_url_debian }} {{ ansible_lsb.codename }} stable"
+        state: present
+      when: ansible_os_family == "Debian"
+      notify: Restart Docker
+ 
+    - name: Install Docker packages on Debian
+      apt:
+        name: "{{ docker_packages_debian }}"
+        state: present
+      when: ansible_os_family == "Debian"
+      notify: Restart Docker
+ 
+    - name: Enable and start Docker service
+      systemd:
+        name: docker
+        enabled: true
+        state: started
+ 
+  handlers:
+    - name: Restart Docker
+      systemd:
+        name: docker
+        state: restarted
+ 
+Lab 6:
+    
+Write a  playbook
+
+    - name: uninstall docker
+      ansible.builtin.dnf:
+        name: docker.io
+        state: absent
+        
+        
+Try lab 5 again.
+
+Lab 7:
+    
+ ---
+- name: Ensure SELinux is set to enforcing mode
+  hosts: all
+  vars_files
+    - vault.yml
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Ensure SELinux is set to enforcing mode
+      ansible.builtin.lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: SELINUX=enforcing
+        
+        
+---cross verify
+
+cat /etc/selinux/config        
+        
+11/06/
+
+Collection lab1:
+#Install it first (on your control node):
+ansible-galaxy collection install community.docker
+
+#Also make sure Python Docker SDK is installed on the managed node:
+
+sudo dnf install -y python3-pip
+pip3 install docker
+
+Ansible Playbook Using community.docker
+- name: Deploy PostgreSQL using Docker collection
+  hosts: remote
+  vars_files:
+    - vault.yml
+  become: true
+  tasks:
+    - name: Create a Docker volume for PostgreSQL data
+      community.docker.docker_volume:
+        name: pgdata
+    - name: Pull the official PostgreSQL image
+      community.docker.docker_image:
+        name: postgres
+        source: pull
+    - name: Run PostgreSQL container
+      community.docker.docker_container:
+        name: postgres
+        image: postgres
+        state: started
+        restart_policy: always
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_PASSWORD: mysecretpassword
+          POSTGRES_USER: myuser
+          POSTGRES_DB: mydb
+        volumes:
+          - pgdata:/var/lib/postgresql/data
+ 
+
+Lab 2:
+ansible-galaxy collection install community.mysql
+
+- name: Simulate RDS MySQL setup on CentOS
+  hosts: all
+  become: yes
+  vars:
+    mysql_root_password: "RootPass123!"
+    db_name: "testdb"
+    db_user: "dbuser"
+    db_user_password: "UserPass123!"
+  tasks:
+    - name: Ensure Python 3 and pip are installed
+      yum:
+        name:
+          - python3
+          - python3-pip
+        state: present
+    - name: Install PyMySQL module for Python 3
+      pip:
+        name: PyMySQL
+        executable: pip3
+    - name: Install MariaDB server
+      yum:
+        name: mariadb-server
+        state: present
+    - name: Start and enable MariaDB service
+      service:
+        name: mariadb
+        state: started
+        enabled: true
+    - name: Set MySQL root password
+      mysql_user:
+        name: root
+        host_all: yes
+        password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/lib/mysql/mysql.sock
+      ignore_errors: true
+    - name: Create a MySQL database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+    - name: Create a MySQL user with privileges
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_user_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        host: "%"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        
+        
+        
+        MAster;
+        mysql   --user=root   --password
+        
+        #pasword is RootPass123!
+
+sudo firewall-cmd --permanent --add-port=3306/tcp
+        
+        
+        
+[client]
+user=root
+password=RootPass123!
+        
+chmod 600 /root/.my.cnf        
+        
+        
+kubectl get nodes
+
+systemctl restart containerd
+systemctl restart kubelet
+
+        
+        
+        
+        
