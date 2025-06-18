@@ -1,0 +1,2392 @@
+Version 9049 Saved June 18, 2025
+Authors: 20 unnamed authors (                                       )
+
+
+
+Return to pad
+06/18/2025 11:51:57
+
+- Lab1: Setting jenkins  master
+ 
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+ 
+# Add required dependencies for the jenkins package
+sudo yum install fontconfig java-21-openjdk  -y
+sudo yum install jenkins -y
+sudo systemctl daemon-reload
+sudo systemctl enable jenkins2
+sudo systemctl start jenkins
+sudo systemctl status jenkins
+ 
+---------------------------------------
+Lab2: setup the jenkins ui dashboard
+ 
+https://www.openwriteup.com/?page_id=1096
+ 
+--------------------------------------
+ 
+Setup the git
+ 
+git --version
+ 
+------------
+Lab 3
+ 
+https://www.openwriteup.com/?page_id=1075
+ 
+------------------
+Lab4 
+part2:
+    
+   https://www.openwriteup.com/?page_id=1081 
+    
+    ----------------------
+Lab 5 scripted pipeline
+ 
+Lab2 link https://www.openwriteup.com/?page_id=1115
+ 
+1) install plugin: pipeline stage view
+2) Jenkins job-->pipleine
+3) Code
+ 
+node {
+    stage('checkout') {
+        sh 'echo checkout'
+    }
+    stage ('build') {
+        sh 'java --version'
+    }
+    stage ('deploy'){
+        sh 'echo print deploy'
+    }
+}
+4) Save and build
+ 
+5) Chekc the build completd and check for replay option
+ 
+ 
+LAb 6
+pipeline {
+agent any
+stages {
+  stage('Checkout') {
+    steps {
+// Checkout code from the Git repository
+     sh 'echo checking out'
+   }
+  }
+stage('Build') {
+  steps {
+// Build the Java application (replace with your build commands)
+  sh 'java -version'
+ }
+}
+stage('Deploy') {
+  steps {
+  // Deploy the application (replace with your deployment commands)
+   sh 'echo "Deploying the application"'
+   }
+  }
+ }
+}
+Lab 7
+Lab4 and assignment
+ 
+https://www.openwriteup.com/?page_id=1115
+ 
+-------------------------------------------------------------
+sonar, maven and artifactory
+    
+    https://www.sonarsource.com/products/sonarcloud/signup/
+    
+    
+    
+03/06
+ 
+Lab1
+ 
+#using linux terminal
+ 
+https://www.openwriteup.com/?page_id=1135
+ 
+dnf install maven -y
+ 
+pipeline {
+agent any
+stages {
+  stage('SCM code') {
+   steps {
+    git 'https://github.com/hellokaton/java11-examples.git'
+   }
+  }
+ stage('Build') {
+  steps {
+   sh 'mvn clean package'
+  }
+ }
+ stage('Publish') {  // Add steps to publish artifacts or deploy the application
+  // For example, you can use the 'archiveArtifacts' step to archive built artifacts
+  archiveArtifacts 'target/*.jar'
+     }
+  }
+} 
+}    
+    
+ 
+Lab2:
+    https://www.openwriteup.com/?page_id=1135
+    
+pipeline {
+agent any
+parameters {
+choice(
+name: 'ENVIRONMENT',devops_trainings
+choices: ['dev', 'qa', 'prod'],
+description: 'Select the deployment environment'
+)
+}
+stages {
+stage('SCM code') {
+steps {
+git 'https://github.com/hellokaton/java11-examples.git'
+}
+}s
+stage('Build') {
+steps {
+sh 'mvn clean package'
+}
+}
+stage('Publish') {
+when {
+expression { params.ENVIRONMENT == 'prod' }
+}
+steps {
+// Add steps to publish artifacts or deploy the application for 'prod'
+// For example, you can use the 'archiveArtifacts' step to archive built artifacts
+archiveArtifacts 'target/*.jar'
+}
+}
+}
+}
+ 
+Lab3
+ 
+https://www.openwriteup.com/?page_id=1223
+ 
+Perform till step 13
+ 
+---
+ 
+vi /etc/sudoers
+ 
+jenkins ALL=(ALL) NOPASSWD: ALL
+ 
+esc+:wq!
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Lab3:
+    pipeline {
+agent any
+ 
+stages {
+stage('chckout scm') {
+steps {
+checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/hellokaton/java11-examples.git']])
+}
+}
+stage('Compiling and Running Test Cases') {
+steps {
+sh 'mvn clean'
+sh 'mvn compile'
+sh 'mvn test'
+}
+}
+stage('Generating a Cucumber Reports') {
+steps {
+script {
+// Run Cucumber tests and generate reports
+sh 'mvn verify'
+}devops_trainings
+}
+}
+stage('Creating Package') {
+steps {
+sh 'mvn package'
+}
+}
+stage('adding genrerate report'){
+steps {
+sh 'mvn verify'
+}
+}
+stage('Install sonarqube cli') {
+steps {
+// Step to install SonarQube CLI
+sh 'sudo wget -O sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip'
+sh 'sudo unzip -o -q sonar-scanner.zip'
+sh 'sudo rm -rf /opt/sonar-scanner'
+sh 'sudo mv --force sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner'
+sh 'sudo sh -c \'echo "#/bin/bash \nexport PATH=\\\"$PATH:/opt/sonar-scanner/bin\\\"" >/etc/profile.d/sonar-scanner.sh\''
+sh 'sudo chmod +x /opt/sonar-scanner/bin/sonar-scanner'
+sh '. /etc/profile.d/sonar-scanner.sh'
+}
+}
+ 
+stage('Analyzing Code Quality') {
+steps {
+// Step to analyze code quality with SonarQube
+sh '/opt/sonar-scanner/bin/sonar-scanner -Dsonar.projectKey=owtest23_sample-java-sonar -Dsonar.organization=owtest23 -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300 -Dsonar.sources=src/main/java/ -Dsonar.java.binaries=target/classes -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=65558d8b45ebd4758f3e8d49b8f3582f8707306'
+}
+}
+}
+}
+ 
+Lab4
+ 
+Lab 17 https://www.openwriteup.com/?page_id=1073
+ 
+ 
+LAb5,6,7
+ 
+—————-
+parallel example
+—————-
+pipeline {
+    agent any
+    stages {
+        stage(‘Stages Running in Parallel’) {
+            failFast true
+            parallel {
+                stage(‘Stage1’) {
+                    steps {
+                        echo “Stage1 executing”
+                        sleep 10
+                    }
+                }
+                stage(‘Stage2’) {
+                    steps {
+                        echo “Stage2 executing”
+                        sleep 10
+                    }
+                }
+                stage(‘Stage3’) {
+                    steps {
+                        echo “Stage3 executing”
+                        sleep 10
+                    }
+                }
+            }
+        }
+    }
+}
+ 
+—————-
+sequential example
+—————-
+pipeline {
+    agent any
+    stages {
+stage(‘Stage1’) {
+steps {
+echo “Stage1 executing”
+sleep 10
+}
+}
+stage(‘Stage2’) {
+steps {
+echo “Stage2 executing”
+sleep 10
+}
+}
+stage(‘Stage3’) {
+steps {
+echo “Stage3 executing”
+sleep 10
+}
+}
+    }
+}
+ 
+—————-
+failfast example
+—————-
+pipeline {
+    agent any
+    stages {
+stage(‘Stages Running in Parallel’) {
+            failFast true
+            parallel {
+                stage(‘Stage1’) {
+                    steps {
+                        echo “Stage1 executing”
+                        sleep 10
+                    }
+                }
+                stage(‘Stage2’) {
+                    steps {
+                        echo “Stage2 executing”
+                        sleep 2
+error ‘simulating error happened on Stage2’
+                    }
+                }
+                stage(‘Stage3’) {
+                    steps {
+                        echo “Stage3 executing”
+                        sleep 10
+                    }
+                }
+            }
+        }
+    }
+}
+ 
+------------------------
+04/06
+ 
+Lab1:
+ 
+yum remove podman*
+ 
+yum remove runc* containerd* buildah*
+ 
+sudo yum install -y yum-utils
+ 
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+ 
+sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+ 
+systemctl enable docker
+ 
+systemctl start docker
+ 
+systemctl status docker
+ 
+Lab2
+ 
+docker search nginx
+docker pull nginx
+docker images
+ 
+docker pull nginx:stable-perl
+ 
+docker images
+ 
+docker pull quay.io/kiwigrid/k8s-sidecar
+docker images
+ 
+explore 
+docker pull mcr.microsoft.com/windows/nanoserver:1803
+https://mcr.microsoft.com/
+ 
+-----
+Lab3
+ 
+docker run -d --name mycontainer nginx
+docker run -d --name mycontainer1 nginx
+ 
+docker ps
+ 
+docker stop mycontainer
+docker ps 
+docker ps -a
+ 
+docker start mycontainer
+docker exec -it mycontainer date
+docker inspect mycontainer
+docker stop mycontainer
+ 
+docker rm mycontainer
+docker ps -a
+ 
+docker images
+ 
+---------------------------
+Lab 4
+ 
+docker exec -it mycontainer1 bash
+touch abc
+ls
+exit
+docker stop mycontainer1
+docker start mycontainer1
+ls
+exit
+ 
+docker stop mycontainer1
+docker rm mycontainer1
+ 
+docker run -d --name mycontainer1 nginx
+docker exec -it mycontainer1 bash
+ls
+#Check for file abc, it will not be there
+exit
+ 
+Lab 5 
+ 
+# trial ssignment: Run a container name my-test using centos (dokken/centos-8) with detached mode'
+Perform below steps docker pull,docker run,docker exec
+#list out using docker command 
+#using docker exec command check the ip address: 'ip addr'
+#check the release version inside the container: 'cat /etc/os-release'
+ 
+solution
+ 
+docker run  -d --name osimage dokken/centos-7
+docker ps
+docker exec -it osimage ip addr
+docker exec -it osimage cat /etc/redhat-release
+----------------
+ 
+Lab 6
+ 
+   docker volume create myvol
+    docker volume ls
+   docker inspect myvol
+  docker run -d --name testingvol -v myvol:/tmp nginx
+docker exec -it testingvol bash
+   cd tmp
+   touch a
+   touch b
+   exit
+docker inspect myvol
+ ls /var/lib/docker/volumes/myvol/_data
+   docker stop testingvol
+  docker rm testingvol
+  docker volume create myvol
+docker run -d --name voltest -v myvol:/var/lib/registry nginx
+  docker exec -it voltest bash
+cd tmp
+ls
+exit
+ 
+-------------
+Lab 7
+ 
+mkdir /tmp/test
+docker run -d --name voltest -v /tmp/test:/tmp nginx
+docker exec -it voltest bash
+cd tmp
+touch a
+touch b
+exit
+docker stop voltest
+docker rm voltest
+docker run -d --name voltest1 -v /tmp/test:/tmp nginx
+docker exec -it voltest1 bash
+cd tmp
+ls
+#check file a and b
+exit
+ 
+ 
+Lab 8
+ 
+Lab Assignment based on the official MySQL Docker image, where the objective is to start a container named mydb and map a volume for persistent database storage (/var/lib/mysql)
+ 
+docker run -dit --name mydb -v /tmp/test:/var/lib/mysql  mysql bash
+ 
+ 
+05/06
+ 
+Dockerfile labs
+ 
+Lab1:
+Create a dockerfile using vi editor: dockerfile
+ 
+FROM debian:stable
+LABEL authors="amit"
+RUN apt-get update && apt-get install -y --force-yes apache2
+ 
+- Save the dockerfile
+ 
+#Run below command
+ 
+docker build -t mydeb .
+ 
+docker images
+ 
+docker run -dit --name mytestcontianer mydeb
+ 
+docker ps
+ 
+docker stop mytestcontainer
+ 
+ 
+--------------
+Lab 2:
+    
+dockerfiletest
+ 
+FROM debian:stable
+LABEL authors="amit"
+RUN apt-get update && apt-get install -y --force-yes apache2
+EXPOSE 80
+WORKDIR /app
+ 
+ 
+docker build -t exposecmd -f dockerfiletest .
+docker images
+docker run -dit --name mytest  exposecmd
+#Check the port number
+docker ps
+#Check the dir
+docker exec -it mytest bash
+pwd
+exit
+ 
+ 
+#
+docker stop mytest
+docker rm mytest
+ 
+Lab 3:
+    
+docker run -dit --name mytest  -p 80:80 exposecmd
+#Check the port number
+docker ps
+#Check the dir
+docker exec -it mytest bash
+service  apache2 start
+exit
+ 
+# Open the browser and check
+http://localhost
+ 
+#
+docker stop mytest
+docker rm mytest
+ 
+ 
+ 
+Lab 4
+ 
+COPY :Copying the file from localsytem to newly build image
+ 
+touch file.txt
+ 
+#dockerfileadd
+ 
+FROM ubuntu:latest
+# Set a working director inside container
+WORKDIR /app
+#Copy file from current directory
+COPY file.txt /app/
+ 
+#build image
+ 
+docker build -t myimage -f dockerfileadd .
+docker images
+docker run -dit --name testcopy myimage
+docker exec -it testcopy ls /app
+ 
+#ADD
+Lab 5
+ 
+FROM ubuntu:latest
+# Set a working director inside container
+WORKDIR /app
+ 
+ADD https://github.com/amitopenwriteup/my_proj/blob/master/k8s-setup.txt /app/
+#Till this point copy it in docker file
+ 
+#below command run in the shell
+ 
+docker build -t myweb2 -f dockerfileadd .
+ 
+docker images
+ 
+docker  run -dit --name addtest myweb2
+docker exec -it addtest ls /app
+ 
+ 
+Lab 6
+vi date.sh 
+ 
+//Copy the below code in date.sh
+ 
+#!/bin/sh
+echo `date` $@ >> log.txt;
+cat log.txt;
+#save date.sh script
+ 
+chmod 777 date.sh
+ 
+#create a dockerfilecmd
+ 
+FROM alpine
+ADD date.sh /
+CMD ["/date.sh", "container started"]
+ 
+docker build -t cmdtest -f dockerfilecmd .
+docker run cmdtest
+docker run cmdtest
+ 
+ 
+Assignment (Lab 7)
+#dockerfilemulticmd
+ 
+FROM alpine
+ADD date.sh /
+CMD ["/date.sh", "container started"]
+CMD ["/date.sh", "container running"]
+ 
+#build the image and create container using docker run command and provide observation
+ 
+ 
+Lab8:
+    #dockerfileep
+    
+FROM alpine
+ADD date.sh /
+ENTRYPOINT ["/date.sh"]
+ 
+ 
+docker build -t testep -f dockerfileep .
+ 
+docker run testep hi
+ 
+ 
+LAb9
+FROM alpine
+ADD date.sh /
+CMD ["/date.sh", "container running"]
+ENTRYPOINT ["/date.sh"]
+ 
+#build the image
+ 
+#Test docker run ocmmand without message and mesage
+ 
+Lab 10
+ 
+FROM alpine
+ADD date.sh /
+CMD ["/date.sh", "container running"]
+RUN ["/date.sh", "image created"]
+ENTRYPOINT ["/date.sh"]
+ 
+#build the image and run container
+ 
+ 
+Signup on docker hub: https://hub.docker.com/
+ 
+------------------
+06/06
+Lab1
+ 
+docker images
+docker image  tag  <source image>  <dockeraccount/reponame:version>
+docker images
+docker push <dockeraccout/reponame:version>
+ 
+example
+ 
+docker image tag cmdtest amitow/cmdtest:v1
+ 
+docker push amitow/cmdtest:v1
+ 
+ 
+ 
+Lab 2:
+    
+    docker run -d -p 5000:5000 --restart=always --name registry registry:2
+This will start a Docker Registry container listening on port 5000.
+Build your Docker image, and tag it with the address of your private registry:
+docker tag cmdtest localhost:5000/my-image
+Push the image to your private registry:
+docker push localhost:5000/my-image
+4. Verify that the image is in the registry by running:
+curl http://localhost:5000/v2/_catalog
+ 
+Open link in browser
+ 
+http://localhost:5000/v2/_catalog
+This should return a JSON object containing the name of your image.
+5. Pull the image from your private registry:
+docker rmi localhost:5000/my-image
+docker images
+docker pull localhost:5000/my-image
+docker images
+ 
+Check persistency factor
+6. docker stop registry
+docker rm registry
+ docker run -d -p 5000:5000 --restart=always --name registry registry:2
+curl http://localhost:5000/v2/_catalog
+--------------------------
+ 
+ 
+Lab3
+ 
+External storage to protect the /var/lib/registry
+Persistency factor: /var/lib/registry
+ 
+1) docker volume 
+2) docker run map the volume
+3) pushing the image
+4) curl command to check
+5) docker stop registry
+docker rm registry
+docker run command with volume mapping
+curl http://localhost:5000/v2/_catalog
+--------------------------
+ 
+Solution
+ 
+docker volume create regvol
+docker run -d -p 5000:5000 --restart=always -v regvol:/var/lib/registry --name registry registry:2
+docker images
+docker push localhost:5000/my_image
+curl http://localhost:5000/v2/_catalog
+ 
+docker stop registry
+docker rm registry
+ 
+Check persistency
+docker run -d -p 5000:5000 --restart=always -v regvol:/var/lib/registry --name registry registry:2
+curl http://localhost:5000/v2/_catalog
+ 
+ 
+Lab 4
+ 
+ 
+#Create the alpine-net network. You do not need the --driver bridge flag since it's the default, but this example shows how to specify it.
+ 
+docker network create --driver bridge alpine-net
+ 
+docker network ls
+ 
+#inspect
+ 
+docker network inspect alpine-net
+ 
+#Create your four containers. Notice the --network flags. You can only connect to one network during the docker run command, so you need to #use docker network connect afterward to connect alpine4 to the bridge network as well.
+ 
+docker run -dit --name alpine1 --network alpine-net alpine ash
+ 
+docker run -dit --name alpine2 --network alpine-net alpine ash
+ 
+docker run -dit --name alpine3 alpine ash
+ 
+docker inspect alpine3
+ 
+docker run -dit --name alpine4 --network alpine-net alpine ash
+ 
+docker network connect bridge alpine4
+ 
+#check all container
+ 
+docker container ls
+ 
+docker network inspect bridge
+ 
+ 
+docker network inspect alpine-net
+ 
+ 
+#Ping test
+ 
+docker container attach alpine1
+ping -c 2 alpine2
+ping -c 2 alpine4
+ 
+#It should fail for alpine 3, why?
+ping -c 2 alpine3
+ 
+#Stop and delete
+ 
+docker container stop alpine1 alpine2 alpine3 alpine4
+ 
+docker container rm alpine1 alpine2 alpine3 alpine4
+ 
+docker network rm alpine-net
+ 
+ 
+Lab 5 and Lab 6
+ 
+ 
+ 
+docker run  -d --network host --name my_nginx nginx
+ 
+#Access Nginx by browsing to http://localhost:80/.
+ 
+ 
+docker inspect host
+ 
+docker inspect my_ngix
+ 
+curl http://localhost:80/
+ 
+docker container stop my_nginx
+ 
+curl http://localhost:80/
+ 
+ 
+#Run a Container with the none Network:
+ 
+docker run -dit --name isolated_container --network none alpine ash
+ 
+#Inspect the Network Interfaces Inside the Container:
+ 
+docker attach isolated_container
+ 
+ip addr show
+ 
+exit
+ 
+docker inspect none
+ 
+# stop and remove the container:
+ 
+docker container stop isolated_container
+docker container rm isolated_container
+ 
+-----------------------------------------
+Lab 7
+ 
+docker ps
+ 
+sudo usermod -a -G docker jenkins
+sudo chown jenkins:docker /var/run/docker.sock
+sudo chmod 660 /var/run/docker.sock
+ 
+ 
+From Manage plugin install docker pipeline plugin
+ 
+ 
+Create a pipeline And select option “pipeline with scm”
+ 
+Provide this git link
+ 
+https://github.com/amitopenwriteup/cicd.git
+ 
+Branch : master
+ 
+Jenkinsfile name: Jenkinsfile
+ 
+ 
+curl localhost:5000/v2/_catalog
+ 
+ 
+Lab 8:
+    
+    https://github.com/amitopenwriteup/cicdproject.git
+ 
+https://github.com/amitopenwriteup/cicdproject/blob/main/aws%20codebuild%20lab.docx
+ 
+https://github.com/amitopenwriteup/cicdproject/blob/main/lab-jenkins-docker.pdf
+ 
+https://github.com/engamit04/cicdproject.git
+------------------------------------------------------------
+ 
+ 
+09.06
+ 
+Install docker in second vm
+ 
+install docker 
+LAb 1 : https://www.openwriteup.com/?page_id=785
+ 
+ 
+yum remove podman*
+ 
+yum remove runc* containerd* buildah*
+ 
+sudo yum install -y yum-utils
+ 
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+ 
+sudo yum install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+ 
+systemctl enable docker
+ 
+ 
+systemctl start docker
+ 
+systemctl status docker
+ 
+Lab 2:
+ 
+1) note down the ip address of second vm
+ 
+ip addr|grep ens
+ 
+2) First .1 linux vm
+ 
+ssh root@ipaddrsss
+example: ssh root@10.0.14.2
+#password is root123
+ 
+Setup overlay and netfilter for both vm
+ 
+https://www.openwriteup.com/?page_id=866
+ 
+Pefrom step 1 in both vm
+ 
+step2 : Execute in both vms
+ 
+https://v1-31.docs.kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/
+ 
+ 
+ 
+step 3:
+ master .1
+ 
+sudo firewall-cmd --permanent --add-port=6443/tcp 
+sudo firewall-cmd --permanent --add-port=2379-2380/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp 
+sudo firewall-cmd --permanent --add-port=10251/tcp 
+sudo firewall-cmd --permanent --add-port=10259/tcp 
+sudo firewall-cmd --permanent --add-port=10257/tcp
+sudo firewall-cmd --permanent --add-port=179/tcp
+sudo firewall-cmd --permanent --add-port=4789/udp
+sudo firewall-cmd --reload
+ 
+worker node /slave 2
+sudo firewall-cmd --permanent --add-port=179/tcp
+sudo firewall-cmd --permanent --add-port=10250/tcp
+sudo firewall-cmd --permanent --add-port=30000-32767/tcp
+sudo firewall-cmd --permanent --add-port=4789/udp
+sudo firewall-cmd --reload
+Run on both nodes
+ 
+ 
+# Run in both vm
+ 
+swapoff -a
+sudo sed -i '/ swap / s/^/#/' /etc/fstab
+ 
+sh -c "containerd config default > /etc/containerd/config.toml"
+sed -i 's/ SystemdCgroup = false/ SystemdCgroup = true/' /etc/containerd/config.toml
+systemctl restart containerd.service
+systemctl restart kubelet.service
+systemctl enable kubelet.service
+ 
+ 
+step 4 only on master
+ 
+kubeadm init --pod-network-cidr=10.244.0.0/16
+ 
+ 
+Step5: Runs only in master node
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+ 
+Install the network plugin in master node
+step 6: only in master
+ kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+ 
+step 7 verify
+ 
+ 
+ 
+kubectl get nodes
+ 
+ 
+step 8 on worker node
+ 
+hostname node
+ 
+ctrl+d
+ 
+ssh root@workerndoeip
+ 
+go in master and worker node
+ 
+vi /etc/hosts
+ 
+<worker node ip>  node
+ 
+exmpale: suppose my worker node ip 10.0.14.2
+ 
+10.0.14.2   node
+ 
+on the master
+ 
+kubeadm token create --print-join-command
+ 
+ 
+outp run the join command run in workernode
+ 
+kubeadm reset
+ 
+It will prompt for y/n: y
+ 
+copy and paste join command again in worker node
+ 
+go to master and run
+ 
+kubectl get nodes
+ 
+---------------------
+In worker ndoe:
+    
+    mkdir /root/.kube
+    
+    from the master
+    
+    
+    scp /root/.kube/config root@wokernodeip:/root/.kube/
+    
+    for example:
+        
+    scp /root/.kube/config  root@10.0.14.2:/root/.kube/
+ 
+TEst from worker  node
+ 
+kubectl get nodes
+ 
+ 
+--------
+create yaml file using vi
+ 
+vi podtest.yaml
+ 
+apiVersion: v1
+kind: Pod
+metadata:
+    name: mypod
+spec:
+    containers:
+    - name: myfirstcontainer
+      image: nginx
+      
+Save it
+ 
+kubectl create -f podtest.yaml
+kubectl get pods
+kubectl describe pod mypod
+kubectl get pods -o wide
+ 
+ 
+-----------------------------
+ 
+10/06
+ 
+rm -rf k8s
+ 
+ git clone https://github.com/amitopenwriteup/k8s.git
+ 
+ cd k8s
+ kubectl create -f expod.yaml
+kubectl get pod
+kubectl get pods -o wide
+kubectl describe pod example-pod
+kubectl delete pod example-pod
+ 
+ 
+------------------------------------
+Lab 2
+kubectl create -f multicont.yaml
+kubectl get pods
+kubectl get pods -o wide
+kubectl describe pod multi-container-pod
+kubectl exec multi-container-pod -c main-container -- date
+kubectl exec multi-container-pod -c sidecar-container -- ls
+kubectl delete pod multi-container-pod
+------------------------------
+Lab 3
+kubectl create ns labs
+ 
+kubectl describe ns labs
+ 
+kubectl delete ns labs
+ 
+Lab 4
+ 
+cat devpod.yaml
+kubectl create ns dev
+kubectl create -f devpod.yaml
+kubectl get pods --namespace=dev
+kubectl describe pod busybox-pod --namespace=dev
+kubectl delete pod busybox-pod --namespace=dev
+-----------------------------------------------------
+Lab 5
+kubectl api-resources|grep -i resourcequota
+kubectl create ns labs
+kubectl apply -f rquota.yaml
+kubectl describe ns labs
+kubectl delete ns labs
+--------------------
+Lab 6
+kubectl api-resources|grep -i recplicationcontroller
+ kubectl create -f repc.yaml
+kubectl get rc
+kubectl describe replicationcontroller hello-dep 
+kubectl get pods --show-labels
+kubectl get pods
+#note down one replica pod name
+kubectl delete pods <provide the name here>
+#check replica pods is creating again or not
+kubectl get pods
+kubectl get rc
+ 
+#Delete rc
+kubectl delete rc hello-dep
+ 
+--------------------
+Lab 7
+ 
+kubectl create ns labs
+kubectl apply -f rquota.yaml
+kubectl describe ns labs
+ 
+modify the repc.yaml, create replicationcontroller in labs namepsace,  try to create 6 replicas
+kubectl create -f repc.yaml
+kubectl get rc --namespace=labs
+kubectl describe rc hello-dep --namespace=labs
+ 
+ 
+-----solution
+kubectl delete resourcequota my-resource-quota --namespace=labs
+kubectl create -f repc.yaml
+kubectl get rc --namespace=labs
+kubectl describe rc hello-dep --namespace=labs
+ 
+--------------------------------------
+11/06
+ 
+run from master
+ 
+kubectl get nodes
+ 
+Go to workernode
+ 
+systemctl restart containerd
+systemctl restart kubelet
+ 
+Go to master
+ 
+kubectl get nodes
+ 
+Lab 1:
+ 
+cd k8s    
+kubectl create -f dep.yaml
+kubectl get deployment
+kubectl get pods
+kubectl delete pods <name of the pod>
+kubectl describe deployment nginx-deployment
+kubectl get rs
+kubectl get pods -o wide
+kubectl get pods --show-labels
+#For deleting the deployment
+kubectl delete deployment nginx-deployment
+ 
+ 
+ 
+Lab 2:
+    
+kubectl create -f ru.yaml
+kubectl get deployment
+kubectl get pods
+kubectl get rs
+kubectl describe deployment hello-rcp
+# update the image
+ kubectl set image deployment/hello-rcp hello-dep=nginx:1.16.1
+ #go and observe the event section of describe
+ kubectl describe deployment hello-rcp
+# Check rollout status
+kubectl rollout status deployment/hello-rcp
+#Rollout history
+kubectl rollout history deployment/hello-rcp
+#roll back
+ kubectl rollout undo deployment/hello-rcp --to-revision=1
+#scaleup
+ kubectl scale deployment/hello-rcp --replicas=10
+ 
+kubectl rollout history deployment hello-rcp --revision=2
+kubectl rollout history deployment hello-rcp --revision=3
+#delete
+ kubectl delete deployment.apps/hello-rcp
+ 
+ Lab 3
+ kubectl create -f rc.yaml
+kubectl get deployment
+kubectl get pods
+kubectl get rs
+kubectl describe deployment hello-dep
+# update the image
+kubectl set image deployment/hello-dep hello-dep=nginx:1.16.1
+# Check rollout status
+kubectl rollout status deployment/hello-dep
+#Rollout history
+kubectl rollout history deployment/hello-dep
+#roll back
+kubectl rollout undo deployment/hello-dep --to-revision=1
+#scaleup
+kubectl scale deployment/hello-dep --replicas=10
+#delete
+kubectl delete deployment.apps/hello-dep
+ 
+ 
+Lab 4
+kubectl create -f dep.yaml
+kubectl get pods
+kubectl get pods --show-labels
+kubectl get pods -o wide
+cat svc.yaml
+#check the selector
+kubectl create -f svc.yaml
+kubectl get svc
+kubectl get ep
+kubectl create -f dep.yaml
+kubectl get pods
+kubectl get ep
+kubectl scale deployment nginx-deployment --replicas=1
+kubectl get ep
+kubectl scale deployment nginx-deployment --replicas=10
+kubectl get ep
+kubectl scale deployment nginx-deployment --replicas=3
+kubectl get ep
+##Delete the service
+kubectl delete -f svc.yaml
+kubectl detete -f dep.yaml
+ 
+Lab 5
+ 
+kubectl get svc
+kubectl delete svc nginx-service-rc
+kubectl create -f dep.yaml
+kubectl get pods
+ 
+kubectl get pods --show-labels
+cat Nodeport.yaml
+kubectl create -f Nodeport.yaml
+kubectl get ep
+#Open a browser and give your workernode ip
+http://wokernodeip:30007
+ 
+Forexample
+http://10.0.14.2:30007
+ 
+#It will open a nginx welcome page
+ 
+kubectl delete deployment nginx-deployment
+kubectl get ep
+#It field it will show none
+ 
+#Open a browser and give your workernode ip
+http://wokernodeip:30007
+ 
+Forexample
+http://10.0.14.2:30007
+ 
+IT will fail page not found
+ 
+kubectl create -f dep.yaml
+kubectl get ep
+ 
+Try browser refesh again
+#Open a browser and give your workernode ip
+http://wokernodeip:30007
+ 
+Forexample
+http://10.0.14.2:30007
+ 
+#Nginx welcome page comes
+ 
+ 
+------------------------------------------------------------------------------------------------
+12/06
+ 
+Health check
+ 
+From master
+kubectl get nodes
+#Both the nodes must come ready, if not run below command in worker node
+systemctl restart containerd
+systemctl restart kubelet
+ 
+Lab1
+ 
+cd k8s
+cat pv.yaml
+#Check storage class,accemode and size
+kubectl create -f pv.yaml
+kubectl get pv
+kubectl describe pv pv-volume-2
+----------------
+Lab2
+ 
+cat pvc.yaml
+cat pv.yaml
+#Check for storageclass,accessmode request size
+ 
+kubectl create -f pvc.yaml
+ 
+kubectl get pvc
+ 
+kubectl get pv
+ 
+kubectl describe pvc pvc-claim-3
+ 
+-----------------------------------------
+ 
+Lab 3
+ 
+vi pvpod.yaml
+#change the claim name from pvc-claim-2 to pvc-claim-3
+cat pvpod.yaml
+kubectl create -f pvpod.yaml
+kubectl get pod
+kubectl get pods -o wide
+#Check the /mnt/data location in worker node
+kubectl exec mypod -it -c myfrontend -- /bin/bash
+cd /var/www/html
+#create a file using below cmd
+touch a
+#exit from the pod:
+exit
+#check the file created on worker node
+ls /mnt/data/
+-----------------------------
+LAb 4:
+     #For rocky linux :wokernode
+sudo dnf install -y nfs-utils
+ 
+#Making a directory in host machine where PersistentVolumeClaim (PVC) will be created
+ 
+sudo mkdir /srv/nfs/kubedata -p
+#Now we will edit the exports file and add the directory 
+#which we created earlier step in order to export it into the remote machine
+ 
+sudo vi /etc/exports
+ 
+#copying the below line
+ 
+/srv/nfs/kubedata    *(rw,sync,no_subtree_check,no_root_squash,no_all_squash,insecure)
+ 
+sudo systemctl enable nfs-server
+sudo systemctl start nfs-server
+sudo systemctl status nfs-server
+ 
+sudo exportfs -rav
+ 
+-------------------------------------------------
+Lab 5
+ 
+#Master node
+sudo dnf install -y nfs-utils
+wget https://get.helm.sh/helm-v3.13.2-linux-amd64.tar.gz
+tar -zxvf helm-v3.13.2-linux-amd64.tar.gz
+mv linux-amd64/helm /bin/helm
+ 
+#Add the stable repository in Helm repo and update
+helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+ 
+#note down the wokernode ip
+ip addr|grep ens
+ 
+# Run below command in master
+helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=provide woker node ip --set nfs.path=/srv/nfs/kubedata 
+ 
+example
+helm install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner --set nfs.server=10.0.14.2 --set nfs.path=/srv/nfs/kubedata 
+ 
+--------------
+Lab 6
+ 
+vi nfsclaim.yaml
+#copy-paste below data
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvctest
+spec:
+  storageClassName: nfs-client
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Mi
+ 
+kubectl create -f nfsclaim.yaml
+kubectl get pvc
+kubectl get pv
+kubectl describe pvc pvctest
+ 
+kubectl get storageclass
+ 
+----------------
+vi podnfs.yaml
+#Copy paste below code
+apiVersion: v1
+kind: Pod
+metadata:
+  name: busybox
+spec:
+  volumes:
+  - name: myvol
+    persistentVolumeClaim:
+      claimName: pvctest
+  containers:
+  - image: busybox
+    name: busybox
+    command: ["/bin/sh"]
+    args: ["-c", "sleep 600"]
+    volumeMounts:
+    - name: myvol
+      mountPath: /data
+ 
+ 
+kubectl create -f podnfs.yaml
+kubectl describe pod busybox
+kubectl get pods |grep -i nfs
+---------------------------------------------------------
+Lab 7
+cd k8s
+cat cm.yaml
+kubectl create -f cm.yaml
+kubectl get cm
+kubectl describe cm game-demo
+ 
+----------------
+lab 8
+cat cm-pod.yaml
+#how env and volume volume mount mapped check that out
+kubectl create -f cm-pod.yaml
+kubectl describe pod configmap-demo-pod
+kubectl exec configmap-demo-pod -c demo -it -- /bin/sh
+export
+ls /config/
+exit
+--------------------
+Lab9
+ 
+cat sec.yaml
+kubectl create -f sec.yaml
+kubectl get secret
+kubectl describe secret database-creds
+cat secenvpod.yaml
+kubectl create -f secenvpod.yaml
+kubectl describe pod php-mysql-app
+kubectl exec php-mysql-app -c php-app -it -- /bin/bash
+#check the env value
+export
+exit
+#Delete the pod
+kubectl delete -f secenvpod.yaml
+ 
+-------------------------------------------------------------------
+ 
+13/06
+ 
+Lab1
+cat role.yaml
+kubectl create -f role.yaml
+kubectl get roles
+kubectl describe role pod-reader
+ 
+Lab2:
+    cat rolebind.yaml
+    kubectl create -f rolebind.yaml
+ kubectl get rolebindings
+ kubectl describe rolebindings read-pods
+ 
+ Lab 3
+#role and role binding testing
+#Create a private key for your user. In this example, we will name the file employee.key:
+openssl genrsa -out employee.key 2048
+#Create a certificate sign request employee.csr using the private key you just created (employee.key in this example). Make sure you specify your  #username and group in the -subj section
+openssl req -new -key employee.key -out employee.csr -subj "/CN=employee/O=test"
+#Generate the final certificate employee.crt by approving the certificate sign request, employee.csr, you made earlier. Make sure you substitute the #CA_LOCATION placeholder with the location of your cluster CA. In this example, the certificate will be valid for 500 days:
+openssl x509 -req -in employee.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out employee.crt -days 500
+kubectl config set-credentials employee --client-certificate=employee.crt --client-key=employee.key
+#Add a new context with the new credentials for your Kubernetes cluster.
+kubectl config set-context employee-context --cluster=kubernetes --namespace=default --user=employee
+kubectl config get-contexts
+kubectl config use-context employee-context
+kubectl get pods
+ kubectl delete pods <pod name>
+#Change to admin
+ kubectl config use-context kubernetes-admin@kubernetes
+ 
+Assignment.
+ 
+create another role for deployments and apigroup is apps
+-->modify the same pod.yaml where name, apigroup and resoruce type
+name: dep-reader
+apigroup: apps
+resource type: deployments
+ 
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: default
+  name: dep-reader
+rules:
+- apiGroups: ["apps"] # "" indicates the core API group
+  resources: ["deployments"]
+  verbs: ["get", "watch", "list"]
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+create a new rolebinding for the new role, don't change the user
+name:read-dep
+rolename: dep-reader
+ 
+and test the user
+ 
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace..
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: RoleBinding
+metadata:
+  name: read-dep
+  namespace: default
+subjects:
+# You can specify more than one "subject"
+- kind: User
+  name: employee # "name" is case sensitive
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: Role #this must be Role or ClusterRole
+  name: dep-reader # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: rbac.authorization.k8s.io
+  
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 
+  Test user
+  kubectl config use-context employee-context
+  kubectl create -f dep.yaml
+  kubectl get deployments
+ kubectl config use-context kubernetes-admin@kubernetes
+ 
+-------------------------------------------------
+Lab 5:
+    
+#Create a yaml file to create pod and svc for ingres
+vi ingresspodsvc.yaml
+ 
+kind: Pod
+apiVersion: v1
+metadata:
+  name: apple-app
+  labels:
+    app: apple
+spec:
+  containers:
+    - name: apple-app
+      image: hashicorp/http-echo
+      args:
+        - "-text=apple"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: apple-service
+spec:
+  selector:
+    app: apple
+  ports:
+    - port: 5678 # Default port for image
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: banana-app
+  labels:
+    app: banana
+spec:
+  containers:
+    - name: banana-app
+      image: hashicorp/http-echo
+      args:
+        - "-text=banana"
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: banana-service
+spec:
+  selector:
+    app: banana
+  ports:
+    - port: 5678 # Default port for image
+ 
+kubectl create -f ingresspodsvc.yaml
+ 
+kubectl get po
+kubectl get svc
+----
+Setup the ingress controller
+ 
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.3.0/deploy/static/provider/cloud/deploy.yaml
+ 
+kubectl get pods --namespace=ingress-nginx
+ 
+------------------------------
+Lab 6
+ 
+vi ingress.yaml
+ 
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demo-localhost
+  namespace: default
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: demo.localdev.me=
+    http:
+      paths:
+        - path: /apple
+          backend:
+            service:
+              name: apple-service
+              port:
+                number: 5678
+          pathType: Prefix
+        - path: /banana
+          backend:
+             service:
+               name: banana-service
+               port:
+                 number: 5678
+          pathType: Prefix
+ 
+kubectl create -f ingress.yaml
+kubectl get ingress
+--------------------------
+ 
+kubectl edit validatingwebhookconfiguration ingress-nginx-admission
+change failurePolicy: Fail to failurePolicy: Ignore
+ 
+------------------------
+Lab8
+helm version
+helm env
+#To list repo
+helm repo list
+1) helm create testchart
+2) cd testchart
+3) ls
+4) ls templates/
+5)
+ 
+rm -rf templates/*
+ 
+mkdir templates
+ 
+kubectl create deployment nginx --image=nginx --dry-run=client -o yaml >> templates/deployment.yaml
+ 
+6) #create a deployment to expose service
+kubectl create deployment nginx --image=nginx
+ 
+kubectl expose deploy nginx --port 80 --type NodePort --dry-run=client -o yaml > templates/service.yaml
+ 
+7) delete old deployment and servicce
+kubectl delete deployment nginx
+kubectl delete service nginx
+ 
+8)#One more additional file, need to create is NOTES.txt inside templates directory
+ 
+echo "This is first helm chart and it will deploy nginx application" >>templates/NOTES.txt
+ 
+12)#Do the dry run
+helm install testchart ./testchart --dry-run
+ 
+13) #install
+cd ..
+helm install testchart ./testchart
+#Check service and deployment
+kubectl get deployment |grep nginx
+kubectl get svc|grep nginx
+14) #check
+helm list
+15) #package
+helm package testchart/
+#Successfully packaged chart and saved it to: /root/testchart-0.1.0.tgz
+16) #Uninstall
+helm uninstall testchart
+#Check service and deployment
+kubectl get svc|grep nginx
+kubectl get deployment|grep nginx
+ 
+------------------------------------------------------------------------
+16/06
+ 
+From the master node
+ 
+kubectl get nodes
+ 
+#If worker node is coming not ready, go to worker node
+ 
+systemctl restart containerd
+systemctl restart kubelet
+ 
+# From master run
+kubectl get nodes
+------------------------------------
+Lab1:
+Step 1: Search for the Prometheus helm chart using the below command
+ 
+helm search hub Prometheus
+ 
+#Run the following commands to add the Prometheus helm chart
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+ 
+ 
+# Install Prometheus Helm Chart on Kubernetes Cluster
+ 
+helm install prometheus prometheus-community/prometheus
+ 
+#Check the pods
+kubectl get pods
+#Check for pending pods
+kubectl describe pod  nameofpod
+#for example
+kubectl describe pods prometheus-server-78b77d9478-hh4xx
+ 
+#check pvc
+kubectl get pvc
+ 
+Step 2:
+kubectl edit pvc prometheus-server
+#Add below spec section and save esc:wq
+storageClassName: nfs-client
+#Change the second pvc as well
+kubectl edit pvc storage-prometheus-alertmanager-0
+#Add below spec section and save esc:wq
+storageClassName: nfs-client
+ 
+kubectl get pvc
+kubectl get pods
+ 
+----------
+step 3
+kubectl get service
+ 
+#Covert to NodePort
+ 
+kubectl edit svc prometheus-server
+ 
+#3rd last line from the bottom
+type: NodePort
+ 
+kubectl get svc|grep prometheus-server
+#Port number 30000-32767
+#In the browser
+http://wokernodeip:portnumber
+#for example my worker node ip: 10.0.14.2 and prot umber 32121
+http://10.0.14.2:32121
+ 
+---------------------------------------------------
+Lab 2
+#Grafana installation
+ 
+helm search hub Grafana
+helm repo add grafana https://grafana.github.io/helm-charts 
+helm repo update
+helm install grafana grafana/grafana
+ 
+#Get the secret
+kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+ 
+#Edit the svc type
+ kubectl edit svc grafana
+ 
+type: NodePort
+ 
+-------------------------------
+ 
+Ansible
+ 
+----Setup the lab on master node-->Control node
+ 
+Lab1:
+    
+    ansible-->press y
+ 
+Lab2:
+    setup passwordless from the control ndoe
+ 
+ssh-keygen -t rsa
+#Prompt for key path and passprase, no need to change, just enter
+ 
+ssh-copy-id root@wokernodeip
+ 
+#Example
+ssh-copy-id root@10.0.14.2
+#prompt for password
+password; root123
+ 
+#test
+ssh root@workernode ip
+exit
+ 
+ 
+ 
+ 
+LAb 3:
+    
+inventory.ini
+        
+[local]
+localhost ansible_connection=local
+[remote]
+10.0.14.2 ansible_user=root ansible_connection=ssh
+ 
+ansible -i inventory.ini all -m ping
+ 
+ansible -i  inventory.ini remote -m ping
+ 
+ansible -i inventory.ini local -m ping
+ 
+Lab 4
+Create playbook: lab1.yaml
+ 
+- name: ping task
+  hosts: all
+  tasks:
+  - name: ping testing
+    ansible.builtin.ping:
+  - name: pring msg
+    ansible.builtin.debug:
+      msg: hello
+ 
+ansible-playbook -i inventory.ini lab1.yaml
+ 
+#fact command
+ansible -i inventory.ini all -m setup
+ansible -i inventory.ini all -m setup| grep -i ansible_os
+ 
+ansible -i inventory.ini remote -m setup| grep -i ansible_os
+ 
+ 
+Lab 5:
+Create playbook: lab2.yaml
+ 
+- name: ping task
+  hosts: all
+  tasks:
+  - name: ping testing
+    ansible.builtin.ping:
+- name: second play
+  hosts: remote
+  tasks:
+  - name: pring msg
+    ansible.builtin.debug:
+      msg: hello
+ 
+ansible-playbook -i inventory.ini lab2.yaml
+ 
+---------------------------------------------------------------
+17/06
+ 
+Lab1:
+#adding user in managed node(worker node)
+useradd training
+passwd training
+su training
+sudo dnf install httpd
+#Try to install a package, it will give training is not in sudoers file
+exit
+vi /etc/sudoers
+training  ALL=(ALL)  NOPASSWD: ALL
+#save the file esc :wq!
+-------------------------------------------------
+Lab2
+#Create a new inventory2.ini
+[local]
+localhost ansible_connection=local
+[remote]
+10.0.14.2  ansible_user=training 
+ 
+ansible-playbook -i inventory2.ini lab2.yaml
+ 
+#It will fail, Modify the inventory2.ini
+ 
+[local]
+localhost ansible_connection=local
+[remote]
+10.0.14.2  ansible_user=training  ansible_password=Welcome1
+ 
+ansible-playbook -i inventory2.ini lab2.yaml
+ 
+------------------------------------------
+Lab3 
+touch index.html
+ 
+lab3.yaml
+ 
+- name: install package
+  hosts: all
+  tasks:
+    - name: dnfinstaller
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    - name: copy file
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+ 
+ansible-playbook -i inventory2.ini lab3.yaml
+#Above task will fail, since dnf is privildeged actitvity
+------------
+Lab4:
+    
+lab4.yaml
+- name: install package
+  hosts: all
+  become: true
+  tasks:
+    - name: dnfinstaller
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    - name: copy file
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner
+        : root
+        group: root
+        mode: '0644'
+ 
+ansible-playbook -i inventory2.ini lab4.yaml
+ 
+------------------------------------------------------------------------------------
+Lab5 [ansible-vault]
+ 
+ansible-vault create vault.yml
+#It will prompt for password, provide password , whatever you want
+ansible_user_password: your training user password
+#example
+ansible_user_password: Welcome1
+#Save the file esc :wq
+#create inventory3.ini
+[local]
+localhost ansible_connection=local
+[remote]
+10.0.14.2 ansible_connection=ssh ansible_user=training ansible_password="{{ ansible_user_password }}"
+#save the file
+ 
+Create lab5.yaml
+ 
+- name: install package
+  hosts: all
+  become: true
+  vars_files:
+      - vault.yml
+  tasks:
+    - name: dnfinstaller
+      ansible.builtin.dnf:
+        name: httpd
+        state: present
+    - name: copy file
+      copy:
+        src: index.html
+        dest: /var/www/html/index.html
+        owner : root
+        group: root
+        mode: '0644'
+        
+#command run it
+ 
+ansible-playbook -i inventory3.ini lab5.yaml  --ask-vault-pass
+#it will prompt for vault p
+ 
+ 
+ass provide it
+ 
+#If you want to edit vault file
+ansible-vault edit vault.yml
+#Provide vault password and try
+------------------------
+Lab6
+ 
+1) Run below command
+ 
+ ansible-galaxy role init test
+ 
+2) copy the section, to test/tasks/main.yaml
+ 
+---
+- name: dnfinstaller
+  ansible.builtin.dnf:
+     name: httpd
+     state: present
+- name: copy file
+  copy:
+     src: files/index.html
+     dest: /var/www/html/index.html
+     owner: root
+     group: root
+     mode: '0644'
+3) create a index.html file under test/files/
+ 
+touch test/files/index.html
+ 
+cd ..
+ 
+4) create a playbook lab5.yaml, outside of test folder
+ 
+---
+- hosts: all
+  become: true
+  vars_files:
+    - vault.yaml
+  roles:
+   - test
+5) Run the command
+ansible-playbook -i inventory3.ini lab5.yaml  --ask-vault-pass
+   
+ 
+-------------------------------
+Lab7 Publish the role
+ 
+https://galaxy.ansible.com/ui/
+ 
+Login using your personal github
+ 
+cd test
+git init
+git add .
+git commit -m "Adding role"
+cat /root/.ssh/id_rsa.pub
+ 
+Now go to github.com
+Go to: Settings -> SSH & GPG keys -> SSH Keys
+Click ‘New SSH key’
+Title “Public repo-key”
+ 
+Create a private repository in your GitHub account called “gittraining”
+a. Name: repo-lab
+b. Choose ‘Public’
+c. Do not initialize with a README
+d. Click the green ‘Create Repository’ button
+ 
+Copy the SSH URL under ‘Quick Setup’
+# Below are the example, please change the command as per your git repo
+git branch -M main
+git remote add origin git@github.com:amitopenwriteup/gittraining.gitgit push -u origin main
+ 
+ 
+git push -u origin main
+ 
+Link lab;https://www.openwriteup.com/?page_id=1081
+ 
+-------------------
+Lab 8
+ansible-galaxy import <GitHub user name> <repo name on github> --token <token id>
+example
+ 
+ansible-galaxy import amitopenwriteup myansiblerole --token 208fb92ea9dfe552476822dd01a8dd1b02ea13e7
+ 
+ 
+--------------------------
+Lab9
+ 
+lab6.yaml
+---
+- hosts: all
+  become: true
+  vars_files:
+    - vault.yml
+  tasks:
+    - name: Install security updates
+      ansible.builtin.dnf:
+        name: "{{ item }}"
+        state: latest
+      loop:
+        - httpd
+        - openssh
+      ignore_errors: yes 
+    - name: Check if docker is installed
+      ansible.builtin.command: docker --version
+      register: output
+      ignore_errors: yes    
+    - ansible.builtin.debug:
+        var: output
+    - name: Install docker
+      ansible.builtin.dnf:
+        name: docker.io
+        state: present
+      when: output.failed
+ 
+ 
+ansible-playbook -i inventory3.ini lab6.yaml --ask-vault-pass
+ 
+-------------------
+lab 10 Assignment: check lab 6 for more details
+convert above playbook into role
+ansible-galaxy role init testrole
+cd testrole
+#Modift the task/main.yaml
+ 
+lab7.yaml (using role create the playbook)
+ 
+ 
+---------------------------------------------------------------
+18/06
+Lab1: Ansible collection
+ 
+#Install it first (on your control node):
+ansible-galaxy collection install community.docker
+ 
+#Also make sure Python Docker SDK is installed on the managed node:
+ 
+Ansible Playbook Using community.docker
+#Modify the inventory file
+[postgres_host]
+10.0.14.2  ansible_connection=ssh ansible_username=training ansible_password="{{ ansible_user_password }}"
+ 
+#lab10.yaml and copy and paste below code
+- name: Deploy PostgreSQL using Docker collection
+  hosts: postgres_host
+  vars_files: 
+      - vault.yml
+  become: true
+  tasks:
+    - name: Create a Docker volume for PostgreSQL data
+      community.docker.docker_volume:
+        name: pgdata
+    - name: Pull the official PostgreSQL image
+      community.docker.docker_image:
+        name: postgres
+        source: pull
+    - name: Run PostgreSQL container
+      community.docker.docker_container:
+        name: postgres
+        image: postgres
+        state: started
+        restart_policy: always
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_PASSWORD: mysecretpassword
+          POSTGRES_USER: myuser
+          POSTGRES_DB: mydb
+        volumes:
+          - pgdata:/var/lib/postgresql/data
+ 
+# run below command
+ 
+ansible-playbook -i inventory4.ini lab10.yaml  --ask-vault-pass
+ 
+#Go to manage node
+docker ps
+docker volume ls
+docker inspect pgdata
+ 
+ 
+-------------------------------
+#Install on control node
+ 
+ansible-galaxy collection install community.mysql
+ 
+#Modify inventory file with right group
+ 
+#Setup the db
+ 
+ 
+- name: Simulate RDS MySQL setup on CentOS
+  hosts: db_servers
+  become: yes
+  vars:
+    mysql_root_password: "RootPass123!"
+    db_name: "testdb"
+    db_user: "dbuser"
+    db_user_password: "UserPass123!"
+  tasks:
+    - name: Ensure Python 3 and pip are installed
+      yum:
+        name:
+          - python3
+          - python3-pip
+        state: present
+    - name: Install PyMySQL module for Python 3
+      pip:
+        name: PyMySQL
+        executable: pip3
+    - name: Install MariaDB server
+      yum:
+        name: mariadb-server
+        state: present
+    - name: Start and enable MariaDB service
+      service:
+        name: mariadb
+        state: started
+        enabled: true
+    - name: Backup existing .my.cnf if no [client] section exists
+      copy:
+        src: /root/.my.cnf
+        dest: /root/.my.cnf.bak
+        remote_src: yes
+      when: ansible_facts['os_family'] == "RedHat"
+      ignore_errors: yes
+    - name: Insert [client] section at the beginning if missing
+      lineinfile:
+        path: /root/.my.cnf
+        line: "[client]"
+        insertafter: BOF
+        state: present
+      when: 
+        - ansible_facts['os_family'] == "RedHat"
+        - ansible_facts['user_id'] == 0
+        - ansible_facts['env']['HOME'] == "/root"
+      ignore_errors: yes
+    - name: Set MySQL root password
+      mysql_user:
+        name: root
+        host_all: yes
+        password: "{{ mysql_root_password }}"
+        login_unix_socket: /var/lib/mysql/mysql.sock
+      ignore_errors: true
+    - name: Create a MySQL database
+      mysql_db:
+        name: "{{ db_name }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+    - name: Create a MySQL user with privileges
+      mysql_user:
+        name: "{{ db_user }}"
+        password: "{{ db_user_password }}"
+        priv: "{{ db_name }}.*:ALL"
+        host: "%"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+ 
+#Run the playbook
+ 
+---------------------------------
+. Create index.html Content
+mkdir files 
+vi files/index.html
+#Copy below code
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Hello from Ansible</h1>
+  </body>
+</html>
+ 
+ 
+ 5. Main Playbook: deploy_website.yaml
+- name: Deploy and validate a website using Docker NGINX
+  hosts: remotes
+  become: yes
+  vars_files:
+    - vault.yaml
+  vars:
+    website_path: /opt/website
+    site_url: http://localhost:81
+    test_file_path: /tmp/test-index.html
+    expected_text: "Hello from Ansible"
+  tasks:
+    - name: Create website directory
+      file:
+        path: "{{ website_path }}"
+        state: directory
+        mode: '0755'
+    - name: Copy website files to remote host
+      copy:
+        src: files/index.html
+        dest: "{{ website_path }}/index.html"
+    - name: Run NGINX container with mounted website directory
+      community.docker.docker_container:
+        name: nginx-site
+        image: nginx
+        state: started
+        restart_policy: always
+        ports:
+          - "81:80"
+        volumes:
+          - "{{ website_path }}:/usr/share/nginx/html:ro"
+    - name: Wait for NGINX to be available on port 81
+      wait_for:
+        port: 81
+        timeout: 30
+    - name: Fetch the index page
+      get_url:
+        url: "{{ site_url }}"
+        dest: "{{ test_file_path }}"
+        force: yes
+    - name: Display success message
+      debug:
+        msg: "Website deployed and validated successfully!"
+ 
+ 6. Install Required Collections
+ansible-galaxy collection install community.docker
+ 
+ 7. Run the Playbook
+ansible-playbook -i inventory.ini deploy_website.yaml --ask-vault-pass
+ 
+--------------------------------------------
+ 
+ 
+- name: Install node_exporter based on architecture
+  hosts: remotes
+  vars_files:
+    - vault.yaml
+  gather_facts: yes
+  become: yes
+  vars:
+    node_exporter_version: "1.9.1"
+  tasks:
+    - name: map the arch
+      set_fact:
+        arch_map: >-
+          {{ {
+            'x86_64': 'amd64',
+            'aarch64': 'arm64'
+          }[ansible_architecture] | default(ansible_architecture) }}
+    - name: Set download URL for node_exporter
+      set_fact:
+        download_url: >-
+          https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-{{ arch_map }}.tar.gz
+    - name: Show which URL is being used
+      debug:
+        var: download_url
+    - name: Create download directory
+      file:
+        path: /opt/node_exporter
+        state: directory
+        mode: '0755'
+    - name: Download node_exporter
+      get_url:
+        url: "{{ download_url }}"
+        dest: /opt/node_exporter/node_exporter.tar.gz
+        mode: '0644'
+    - name: Extract node_exporter
+      unarchive:
+        src: /opt/node_exporter/node_exporter.tar.gz
+        dest: /opt/node_exporter
+        remote_src: yes
+    - name: Move binary to /usr/local/bin
+      command: mv /opt/node_exporter/node_exporter-{{ node_exporter_version }}.linux-{{ arch_map}}/node_exporter /usr/local/bin/
+      args:
+        creates: /usr/local/bin/node_exporter
+    - name: Make node_exporter executable
+      file:
+        path: /usr/local/bin/node_exporter
+        mode: '0755'
+        state: file
+      register: exporter
+    - name: Display installed 
+      debug:
+        msg: installed!!
+ 
+--
